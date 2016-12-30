@@ -1,17 +1,21 @@
 import React from 'react';
+import Grid from '../components/Grid';
 import Rect from '../components/Rect';
-import Figure from '../components/Figure';
+import Shape from '../components/Shape';
 import styled from 'styled-components';
 
-export default class RootContainer extends React.Component {
+export default class Root extends React.Component {
   render() {
     return (
-      <Figure angle={45}>
-        <Rect color='#1ecc65' />
-        <Rect color='#1ecc65' />
-        <Rect color='#1ecc65' />
-        <Rect color='#1ecc65' />
-      </Figure>
+      <div>
+        <Grid size={20} />
+        <Shape angle={45}>
+          <Rect color='#1ecc65' />
+          <Rect color='#1ecc65' />
+          <Rect color='#1ecc65' />
+          <Rect color='#1ecc65' />
+        </Shape>
+      </div>
     );
   }
 }

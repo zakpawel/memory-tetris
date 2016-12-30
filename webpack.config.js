@@ -20,10 +20,10 @@ module.exports = {
       test: /\.js$/,
       loaders: ['react-hot-loader/webpack', 'babel-loader?presets[]=react,presets[]=es2015,presets[]=stage-3'],
       exclude: /node_modules/
-      // include: path.join(__dirname, src)
     }, {
       test: /\.css$/,
-      loader: 'style!css'
+      loaders: ['style-loader', 'css-loader'],
+      exclude: /node_modules/
     }]
   }
 };
