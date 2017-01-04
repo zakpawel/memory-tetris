@@ -1,5 +1,9 @@
 import React from 'react';
+// import Grid from '../components/Grid';
+import Rect from '../components/Rect';
 import styled from 'styled-components';
+import interact from 'interactjs';
+import ReactDOM from 'react-dom';
 
 export default class Shape extends React.Component {
   constructor(props) {
@@ -11,132 +15,146 @@ export default class Shape extends React.Component {
         top: 0
       },
       moving: false,
-      position: { x: 0, y: 0 }
+      position: { x: 0, y: 0 },
+      block: { snapX: 0, snapY: 0, width: 0, height: 0 },
+      rotateMode: false
     };
   }
 
-  onStart(extract, e) {
-    e.preventDefault();
-    const {
-      target,
-      position
-    } = extract(e);
-    const clientRect = target.getBoundingClientRect();
-    const offsetDiff = {
-      left: position.clientX - clientRect.left,
-      top: position.clientY - clientRect.top
+  componentDidMount() {
+    this.interactable =
+    interact
+    .pointerMoveTolerance(4)
+    (ReactDOM.findDOMNode(this.path))
+      .draggable({
+    	   snap: {
+          targets: [
+            interact.createSnapGrid({ x: 32, y: 32 })
+          ],
+          endOnly: true,
+          range: Infinity,
+          relativePoints: [ { x: 0, y: 0 } ]
+        },
+        // enable inertial throwing
+        // inertia: true,
+        maxPerElement: 10,
+        // keep the element within the area of it's parent
+        // restrict: {
+        //   restriction: "parent",
+        //   endOnly: true,
+        //   elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+        // },
+        // enable autoScroll
+        // autoScroll: true,
+
+        // call this function on every dragmove event
+        onmove: this.ionMove.bind(this)
+      })
+      .gesturable({
+        intertia: true,
+        maxPerElement: 10,
+        onmove: this.onrotate.bind(this)
+      })
+      // .preventDefault('always')
+      .on(['dragstart', 'dragmove', 'draginertiastart',
+      'dragend',
+      'gesturestart', 'gesturemove', 'gestureend'], event => {
+        console.log(event)
+      })
+      // .actionChecker(
+      //   function (pointer, event, action,
+      //      interactable, element, interaction) {
+      //        console.log(pointer, event, action)
+      //        action.name = 'drag'
+      //        return action;
+      // })
+
+      .on('tap', event => {
+        this.setState((state, props) => ({
+          rotateMode: !state.rotateMode
+        }))
+      })
+  }
+
+  onrotate(event) {
+    if (!this.state.rotateMode) return;
+    console.log('onrotate', event.type);
+
+//     var interaction = event.interaction;
+//
+//         // if (!interaction.interacting()) {
+//           // console.log('onrotate drag start');
+//           interaction.start({ name: 'dragmove' },
+//                             event.interactable,
+//                             event.currentTarget)
+//                           // }
+// event.type = 'dragmove'
+//                           event.interactable.fire(event);
+
+    const t = event.target;
+    const angle = (parseFloat(t.getAttribute('data-a')) || 0) + event.da;
+    const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+    const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+    // const x = (parseFloat(t.getAttribute('data-x')) || 0);
+    // const y = (parseFloat(t.getAttribute('data-y')) || 0);
+
+    t.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+    t.setAttribute('data-a', angle);
+    t.setAttribute('data-x', x);
+    t.setAttribute('data-y', y);
+  }
+
+  ionMove(event) {
+    if (this.state.rotateMode) return;
+      // console.log('onmove', event.dx, event.dy, this.state.position);
+      const t = event.target;
+      const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
+      const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
+      const angle = (parseFloat(t.getAttribute('data-a')) || 0);
+
+      t.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+      t.setAttribute('data-x', x);
+      t.setAttribute('data-y', y);
+  }
+
+  snap(left, top, width, height) {
+    return {
+      snapX: Math.round(left / width),
+      snapY: Math.round(top / height)
     };
-    this.setState((state, props) => {
-      return {
-        ...state,
-        moving: true,
-        offsetDiff
-      };
-    });
-  }
-
-  onEnd() {
-    this.setState((state, props) => ({
-      moving: false
-    }));
-  }
-
-  onMove(extract, e) {
-    e.preventDefault();
-    const { position } = extract(e);
-    this.setState((state, props) => {
-      return {
-        ...state,
-        position: {
-          x: position.clientX - state.offsetDiff.left,
-          y: position.clientY - state.offsetDiff.top
-        }
-      };
-    })
-  }
-
-  onMouseDown(e) {
-    const { clientX, clientY } = e;
-    this.onStart(e => ({
-      target: e.currentTarget,
-      position: { clientX, clientY }
-    }), e);
-  }
-
-  onMouseUp(e) {
-    this.onEnd(e);
-  }
-
-  onMouseMove(e) {
-    if (this.state.moving) {
-      const { clientX, clientY } = e;
-      this.onMove(e => ({
-        position: { clientX, clientY }
-      }), e);
-    }
-  }
-
-  onMouseEnter(e) {
-
-  }
-
-  onMouseLeave(e) {
-    this.onEnd(e);
-  }
-
-  onTouchStart(e) {
-    const { clientX, clientY } = e.touches[0]; // handle emptiness
-    this.onStart(e => ({
-      target: e.currentTarget,
-      position: { clientX, clientY }
-    }), e);
-  }
-
-  onTouchEnd(e) {
-    this.onEnd(e);
-  }
-
-  onTouchCancel(e) {
-    this.onEnd(e);
-  }
-
-  onTouchMove(e) {
-    const { clientX, clientY } = e.touches[0]; // handle emptiness
-    this.onMove(e => ({
-      position: { clientX, clientY }
-    }), e);
   }
 
   render() {
+    const m = 32;
+    const R = `h${m}v${m}h${-m}z`;
+    let d = "";
+    this.props.points.forEach(point => {
+      const [x,y] = point;
+      d = ` ${d} M${x*m},${y*m} ${R}`;
+    })
     return (
-      <BaseShape
-        angle={this.state.angle}
-        x={this.state.position.x}
-        y={this.state.position.y}
-        moving={this.state.moving}
-        onTouchStart={e => this.onTouchStart(e)}
-        onTouchEnd={e => this.onTouchEnd(e)}
-        onTouchMove={e => this.onTouchMove(e)}
-        onTouchCancel={e => this.onTouchCancel(e)}
-        onMouseEnter={e => this.onMouseEnter(e)}
-        onMouseLeave={e => this.onMouseLeave(e)}
-        onMouseDown={e => this.onMouseDown(e)}
-        onMouseMove={e => this.onMouseMove(e)}
-        onMouseUp={e => this.onMouseUp(e)}
-      >
-        {this.props.children}
-      </BaseShape>
+      <Svg>
+        <path
+          d={d}
+          ref={path => this.path = path}
+          fill="lightgreen"
+        />
+      </Svg>
     );
   }
 }
 
-const BaseShape = styled.div`
-  display: inline-block;
-  position: absolute;
-  left: 0;
-  top: 0;
+const Grid = styled.div`
   touch-action: none;
-  transform: ${props => `translate(${props.x}px, ${props.y}px) rotate(${props.angle}deg);`}
-  box-shadow: ${props => props.moving ? `0px 0px 12px -2px black` : ''}
-  z-index: 10;
+`;
+
+const Row = styled.div`
+  touch-action: none;
+`;
+
+
+const Svg = styled.svg`
+  width: 100%;
+  height: 100%;
+  touch-action: none;
 `;
