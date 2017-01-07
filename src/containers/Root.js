@@ -48,12 +48,12 @@ export default class Root extends React.Component {
     this.state = {
       grid,
       shapes,
-      scale: 64,
+      scale: 10,
     }
   }
 
   onShapeMove([x,y], i) {
-    console.log('Move', x,y);
+    console.log('onShapeMove', x,y);
     const m = this.state.scale;
     this.setState((state, props) => ({
         ...state,
@@ -61,18 +61,19 @@ export default class Root extends React.Component {
           [], state.shapes,
           { [i]: {
             ...state.shapes[i],
-            location: [x/m,y/m]
+            location: [x,y]
             }
           })
     }))
   }
 
   onShapeRotate(angle, i) {
-    console.log('Rotate', angle);
+    console.log('onShapeRotate', angle);
     this.setState((state, props) => ({
         ...state,
         shapes: Object.assign(
-          [], state.shapes,
+          [],
+          state.shapes,
           {
             [i]: rotateShape(state.shapes[i], angle)
           })
@@ -82,21 +83,26 @@ export default class Root extends React.Component {
   render() {
     return (
       <div>
-        <Grid scale={this.state.scale} gridPoints={this.state.grid} />
         <Container>
-          <Svg>
+          <Svg viewBox={`0 0 ${this.state.scale} ${this.state.scale}`} preserveAspectRatio="xMinYMin meet">
+            <defs>
+              <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse">
+                <path d={`M 0 0 L 0 0 0 1`} fill="none" stroke="gray" strokeWidth="0.01"/>
+                <path d={`M 0 0 L 0 0 1 0`} fill="none" stroke="gray" strokeWidth="0.01"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
             { this.state.shapes.map((shape, i) => {
               const { location: [lx,ly], center: [cx,cy] } = shape;
-              const m = this.state.scale;
               const props = {
                 ...shape,
                 location: [
-                  lx * m,
-                  ly * m
+                  lx,
+                  ly
                 ],
                 center: [
-                  cx * m,
-                  cy * m
+                  cx,
+                  cy
                 ]
               };
 
@@ -118,8 +124,8 @@ export default class Root extends React.Component {
 }
 
 const Svg = styled.svg`
-  width: 100%;
-  height: 100%;
   position: absolute;
   touch-action: none;
+  width: 100%;
+  height: 100%;
 `;

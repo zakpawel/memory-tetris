@@ -71,10 +71,6 @@ export function randomShape(shape, grid) {
   return randomShape;
 }
 
-export function randomizeShapes(shapes) {
-  shapes
-}
-
 export function emptyGrid(n,m) {
   const grid = [];
   for (let i=0; i<n; i++) {

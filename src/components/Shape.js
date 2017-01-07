@@ -18,17 +18,65 @@ export default class Shape extends React.Component {
       block: { snapX: 0, snapY: 0, width: 0, height: 0 },
       gestureMode: false
     };
+
+    this.internalState = {
+      x: 0,
+      y: 0,
+      a: 0
+    };
+  }
+
+  setSnapGrid() {
+    const [sx,sy] = transformToPx(1,1,this.svg);
+    this.interactable.snap({
+      targets: [
+        interact.createSnapGrid({ x: sx, y: sy })
+      ],
+      endOnly: true,
+      range: Infinity,
+      relativePoints: [ { x: 0, y: 0 } ]
+    })
+  }
+
+  updateStateFromProps() {
+    const { location: [lx,ly], angle: a } = this.props;
+    const [x,y] = transformToPx(lx,ly,this.svg);
+    this.internalState = {
+      ...this.internalState,
+      x,y,a
+    }
+  }
+
+  componentDidUpdate() {
+    this.updateStateFromProps();
+    const [x,y,a] = this.getSvgCoordinates();
+    const { center: [cx,cy] } = this.props;
+
+    // why render() does not update this attribute?
+    this.node.setAttribute('transform', transform(x, y, cx, cy, a));
+  }
+
+  componentWillUnmout() {
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
   componentDidMount() {
+    console.log('componentDidMount');
+    this.resizeHandler = e => {
+      console.log('Resize', e);
+      this.setSnapGrid();
+    };
+    window.addEventListener('resize', this.resizeHandler);
+    this.svg = this.node.ownerSVGElement;
+    const [sx,sy] = transformToPx(1,1,this.svg);
+
     this.interactable =
     interact
-    .pointerMoveTolerance(4)
-    (ReactDOM.findDOMNode(this.node))
+    .pointerMoveTolerance(4)(ReactDOM.findDOMNode(this.node))
       .draggable({
     	   snap: {
           targets: [
-            interact.createSnapGrid({ x: this.props.scale, y: this.props.scale })
+            interact.createSnapGrid({ x: sx, y: sy })
           ],
           endOnly: true,
           range: Infinity,
@@ -37,11 +85,11 @@ export default class Shape extends React.Component {
         // inertia: true,
         maxPerElement: 10,
         // keep the element within the area of it's parent
-        // restrict: {
-        //   restriction: "parent",
-        //   endOnly: true,
-        //   elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-        // },
+        restrict: {
+          restriction: "parent",
+          endOnly: true,
+          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+        },
         // enable autoScroll
         // autoScroll: true,
 
@@ -50,24 +98,18 @@ export default class Shape extends React.Component {
         onend: this.onDragEnd.bind(this)
       })
       .gesturable({
-        intertia: true,
         maxPerElement: 10,
         onmove: this.onGestureMove.bind(this),
         onend: this.onGestureEnd.bind(this)
       })
-      // .preventDefault('always')
-      .on(['dragstart', 'dragmove', 'draginertiastart',
-      'dragend',
-      'gesturestart', 'gesturemove', 'gestureend'], event => {
-        // console.log(event)
-      })
+      .preventDefault('always')
       // .actionChecker(
       //   function (pointer, event, action,
       //      interactable, element, interaction) {
       //        console.log(pointer, event, action)
-      //        action.name = 'drag'
+      //        action.name = 'gesture';
       //        return action;
-      // })
+      // });
 
       .on('tap', event => {
         this.setState((state, props) => ({
@@ -75,46 +117,56 @@ export default class Shape extends React.Component {
           gestureMode: !state.gestureMode
         }))
       })
+      this.updateStateFromProps();
+  }
+
+  setPxCoordinates(event) {
+    this.internalState = {
+      x: this.internalState.x + event.dx,
+      y: this.internalState.y + event.dy,
+      a: this.internalState.a + (event.da ? event.da : 0)
+    };
+  }
+
+  setAngleCoordinates(event) {
+    this.internalState = {
+      ...this.internalState,
+      a: this.internalState.a + (event.da ? event.da : 0)
+    };
+  }
+
+  getSvgCoordinates() {
+    const { x,y,a } = this.internalState;
+    const [tx,ty] = transformToSvg(x,y,this.svg);
+    return [tx,ty,a];
   }
 
   onGestureMove(event) {
     if (!this.state.gestureMode) return;
-    const { center: [cx,cy], scale: m } = this.props;
-    const t = event.target;
-    const a = (parseFloat(t.getAttribute('data-a')) || 0) + event.da;
-    const x = (parseFloat(t.getAttribute('data-x')) || 0);
-    const y = (parseFloat(t.getAttribute('data-y')) || 0);
 
-    // t.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
-    t.setAttribute('transform', transform(x, y, cx, cy, a, m));
-    t.setAttribute('data-a', a);
-    t.setAttribute('data-x', x);
-    t.setAttribute('data-y', y);
+    const t = event.target;
+    const { center: [cx,cy], angle } = this.props;
+    this.setAngleCoordinates(event);
+    const [x,y,a] = this.getSvgCoordinates();
+    t.setAttribute('transform', transform(x, y, cx, cy, a));
   }
 
   onGestureEnd(event) {
-    const { center: [cx,cy], scale: m } = this.props;
+    // figure out why gesture move is so slugish
     const t = event.target;
-    const x = (parseFloat(t.getAttribute('data-x')) || 0);
-    const y = (parseFloat(t.getAttribute('data-y')) || 0);
-    const a = (parseFloat(t.getAttribute('data-a')) || 0);
-
+    // const { center: [cx,cy] } = this.props;
+    const [x,y,a] = this.getSvgCoordinates();
     const n = Math.round(a/90);
     const na = n*90;
-
-    // t.style.transform = `translate(${x}px, ${y}px) rotate(${na}deg)`;
-    t.setAttribute('transform', transform(x, y, cx, cy, na, m));
-    t.setAttribute('data-a', na);
-    t.setAttribute('data-x', x);
-    t.setAttribute('data-y', y);
 
     this.props.onRotate(na);
   }
 
   onDragEnd(event) {
     const t = event.target;
-    const x = (parseFloat(t.getAttribute('data-x')) || 0);
-    const y = (parseFloat(t.getAttribute('data-y')) || 0);
+    const { center: [cx,cy], angle: a } = this.props;
+    const [x,y] = this.getSvgCoordinates();
+    t.setAttribute('transform', transform(x, y, cx, cy, a));
 
     this.props.onMove([x,y]);
   }
@@ -122,49 +174,30 @@ export default class Shape extends React.Component {
   onDragMove(event) {
     if (this.state.gestureMode) return;
     const t = event.target;
-    const { location: [lx,ly], center: [cx,cy], angle, scale: m } = this.props;
-
-    const x = (parseFloat(t.getAttribute('data-x')) || lx) + event.dx;
-    const y = (parseFloat(t.getAttribute('data-y')) || ly) + event.dy;
-    const a = (parseFloat(t.getAttribute('data-a')) || angle);
-    // const o = {x,y,lx,ly,dx:event.dx, dy:event.dy}
-    // console.log(event);
-
-    // t.style.transform = `translate(${x}px, ${y}px) rotate(${a}deg)`;
-
-    t.setAttribute('transform', transform(x, y, cx, cy, a, m));
-    t.setAttribute('data-x', x);
-    t.setAttribute('data-y', y);
-  }
-
-  componentDidUpdate2() {
-    console.log('componentDidUpdate');
-    const { location: [x,y], center: [cx,cy], angle: a, scale: m } = this.props;
-    this.node.setAttribute('transform', transform(x, y, cx, cy, a, m));
-    this.node.setAttribute('data-x', x);
-    this.node.setAttribute('data-y', y);
-    this.node.setAttribute('data-a', a);
+    const { center: [cx,cy], angle: a } = this.props;
+    this.setPxCoordinates(event);
+    const [x,y] = this.getSvgCoordinates();
+    t.setAttribute('transform', transform(x, y, cx, cy, a));
   }
 
   render() {
     const { location: [lx,ly], center: [cx,cy], angle: a } = this.props;
-    const m = this.props.scale;
-    const R = `h${1}v${1}h${-1}z`;
+    const rect = `h${1}v${1}h${-1}z`;
     let d = "";
     this.props.points.forEach(([x,y]) => {
-      d = ` ${d} M${x},${y} ${R}`;
+      d = `${d} M${x},${y} ${rect}`;
     });
     return (
       <g
         ref={node => this.node = node}
-        transform={transform(lx,ly,cx,cy,a,m)}
+        transform={transform(lx,ly,cx,cy,a)}
       >
         {
           this.state.gestureMode ?
             <circle
-              cx={cx/m}
-              cy={cy/m}
-              r={180/m}
+              cx={cx}
+              cy={cy}
+              r={3}
               fill="rgba(91, 171, 216, 0.2)"
             />
           : null
@@ -175,7 +208,7 @@ export default class Shape extends React.Component {
         />
         {
           this.state.gestureMode ?
-            <Knob cx={cx} cy={cy} scale={m} />
+            <Knob cx={cx} cy={cy} />
           : null
         }
       </g>
@@ -183,27 +216,48 @@ export default class Shape extends React.Component {
   }
 }
 
-const Knob = (({ cx,cy,scale }) =>
-  <KnobScaled
-    scale={scale}
-  >
+const Knob = (({ cx,cy }) =>
+  <KnobScaled>
     <circle
       cx={cx}
       cy={cy}
-      r={5}
+      r={0.12}
       fill="white"
     />
     <circle
       cx={cx}
       cy={cy}
-      r={4}
+      r={0.1}
       fill="#2196F3"
     />
   </KnobScaled>
 )
 
 const KnobScaled = styled.g`
-  transform: ${props => `scale(${1/props.scale})` }
+
 `;
 
-const transform = (x, y, cx, cy, a, m) => `translate(${x}, ${y}) rotate(${a} ${cx} ${cy}) scale(${m})`;
+function transformToPx(x, y, svg) {
+  const point = svg.createSVGPoint();
+  const matrix = svg.getScreenCTM();
+  return transformByMatrix(x, y, point, matrix);
+}
+
+function transformToSvg(x, y, svg) {
+  const point = svg.createSVGPoint();
+  const matrix = svg.getScreenCTM().inverse();
+  return transformByMatrix(x, y, point, matrix);
+}
+
+function transformByMatrix(x, y, point, matrix) {
+  point.x = x;
+  point.y = y;
+  const newPoint = point.matrixTransform(matrix)
+  const tx = newPoint.x;
+  const ty = newPoint.y;
+  return [tx,ty];
+}
+
+const transform = (x, y, cx, cy, a) => {
+  return `translate(${x}, ${y}) rotate(${a} ${cx} ${cy})`;
+}
