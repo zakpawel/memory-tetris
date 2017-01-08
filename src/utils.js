@@ -97,3 +97,28 @@ export function randomGrid(shapes, n, m) {
   });
   return [grid, newShapes];
 }
+
+export function transformToPx(x, y, svg) {
+  const point = svg.createSVGPoint();
+  const matrix = svg.getScreenCTM();
+  return transformByMatrix(x, y, point, matrix);
+}
+
+export function transformToSvg(x, y, svg) {
+  const point = svg.createSVGPoint();
+  const matrix = svg.getScreenCTM().inverse();
+  return transformByMatrix(x, y, point, matrix);
+}
+
+export function transformByMatrix(x, y, point, matrix) {
+  point.x = x;
+  point.y = y;
+  const newPoint = point.matrixTransform(matrix)
+  const tx = newPoint.x;
+  const ty = newPoint.y;
+  return [tx,ty];
+}
+
+export function transform(x, y, cx, cy, a) {
+  return `translate(${x}, ${y}) rotate(${a} ${cx} ${cy})`;
+ }
