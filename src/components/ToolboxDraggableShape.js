@@ -2,25 +2,19 @@ import React from 'react';
 import styled from 'styled-components';
 import interact from 'interactjs';
 import ReactDOM from 'react-dom';
-import  {
+import Shape from '../components/Shape';
+
+import {
   transformToPx,
   transformToSvg,
   transformByMatrix,
   transform
 } from '../utils';
 
-export default class DraggableShape extends React.Component {
+export default class ToolboxDraggableShape extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      angle: 0,
-      offsetDiff: {
-        left: 0,
-        top: 0
-      },
-      moving: false,
-      position: { x: 0, y: 0 },
-      block: { snapX: 0, snapY: 0, width: 0, height: 0 },
       gestureMode: false
     };
 
@@ -32,20 +26,20 @@ export default class DraggableShape extends React.Component {
   }
 
   setSnapGrid() {
-    const [sx,sy] = transformToPx(1,1,this.svg);
-    this.interactable.snap({
-      targets: [
-        interact.createSnapGrid({ x: sx, y: sy })
-      ],
-      endOnly: true,
-      range: Infinity,
-      relativePoints: [ { x: 0, y: 0 } ]
-    })
+    // const [sx,sy] = transformToPx(1,1,this.svg);
+    // this.interactable.snap({
+    //   targets: [
+    //     interact.createSnapGrid({ x: sx, y: sy })
+    //   ],
+    //   endOnly: true,
+    //   range: Infinity,
+    //   relativePoints: [ { x: 0, y: 0 } ]
+    // })
   }
 
   updateStateFromProps() {
-    const { location: [lx,ly], angle: a } = this.props;
-    const [x,y] = transformToPx(lx,ly,this.svg);
+    const { location: [x,y], angle: a } = this.props;
+    // const [x,y] = transformToPx(lx,ly,this.svg);
     this.internalState = {
       ...this.internalState,
       x,y,a
@@ -72,56 +66,57 @@ export default class DraggableShape extends React.Component {
       this.setSnapGrid();
     };
     window.addEventListener('resize', this.resizeHandler);
-    this.svg = this.node.ownerSVGElement;
-    const [sx,sy] = transformToPx(1,1,this.svg);
+    console.log(this.node, this.node.ownerSVGElement)
+    this.svg = this.node;
+    // const [sx,sy] = transformToPx(1,1,this.svg);
 
     this.interactable =
-    interact
-    .pointerMoveTolerance(4)(ReactDOM.findDOMNode(this.node))
-      .draggable({
-    	   snap: {
-          targets: [
-            interact.createSnapGrid({ x: sx, y: sy })
-          ],
-          endOnly: true,
-          range: Infinity,
-          relativePoints: [ { x: 0, y: 0 } ]
-        },
-        // inertia: true,
-        maxPerElement: 10,
-        // keep the element within the area of it's parent
-        restrict: {
-          restriction: "parent",
-          endOnly: true,
-          elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
-        },
-        // enable autoScroll
-        // autoScroll: true,
+      interact
+        .pointerMoveTolerance(4)(ReactDOM.findDOMNode(this.node))
+        .draggable({
+      	  //  snap: {
+          //   targets: [
+          //     interact.createSnapGrid({ x: sx, y: sy })
+          //   ],
+          //   endOnly: true,
+          //   range: Infinity,
+          //   relativePoints: [ { x: 0, y: 0 } ]
+          // },
+          // inertia: true,
+          maxPerElement: 10,
+          // keep the element within the area of it's parent
+          restrict: {
+            restriction: document.body,
+            endOnly: true,
+            elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+          },
+          // enable autoScroll
+          // autoScroll: true,
 
-        // call this function on every dragmove event
-        onmove: this.onDragMove.bind(this),
-        onend: this.onDragEnd.bind(this)
-      })
-      .gesturable({
-        maxPerElement: 10,
-        onmove: this.onGestureMove.bind(this),
-        onend: this.onGestureEnd.bind(this)
-      })
-      .preventDefault('always')
-      // .actionChecker(
-      //   function (pointer, event, action,
-      //      interactable, element, interaction) {
-      //        console.log(pointer, event, action)
-      //        action.name = 'gesture';
-      //        return action;
-      // });
+          // call this function on every dragmove event
+          onmove: this.onDragMove.bind(this),
+          onend: this.onDragEnd.bind(this)
+        })
+        .gesturable({
+          maxPerElement: 10,
+          onmove: this.onGestureMove.bind(this),
+          onend: this.onGestureEnd.bind(this)
+        })
+        .preventDefault('always')
+        // .actionChecker(
+        //   function (pointer, event, action,
+        //      interactable, element, interaction) {
+        //        console.log(pointer, event, action)
+        //        action.name = 'gesture';
+        //        return action;
+        // });
 
-      .on('tap', event => {
-        this.setState((state, props) => ({
-          ...state,
-          gestureMode: !state.gestureMode
-        }))
-      })
+        .on('tap', event => {
+          this.setState((state, props) => ({
+            ...state,
+            gestureMode: !state.gestureMode
+          }))
+        })
       this.updateStateFromProps();
   }
 
@@ -142,8 +137,9 @@ export default class DraggableShape extends React.Component {
 
   getSvgCoordinates() {
     const { x,y,a } = this.internalState;
-    const [tx,ty] = transformToSvg(x,y,this.svg);
-    return [tx,ty,a];
+    return [x,y,a];
+    // const [tx,ty] = transformToSvg(x,y,this.svg);
+    // return [tx,ty,a];
   }
 
   onGestureMove(event) {
@@ -186,58 +182,17 @@ export default class DraggableShape extends React.Component {
   }
 
   render() {
-    const { location: [lx,ly], center: [cx,cy], angle: a } = this.props;
-    const rect = `h${1}v${1}h${-1}z`;
-    let d = "";
-    this.props.points.forEach(([x,y]) => {
-      d = `${d} M${x},${y} ${rect}`;
-    });
     return (
-      <g
+      <svg
+        preserveAspectRatio="xMinYMin meet"
         ref={node => this.node = node}
-        transform={transform(lx,ly,cx,cy,a)}
+        viewBox={`0 0 ${this.props.scale} ${this.props.scale}`}
       >
-        {
-          this.state.gestureMode ?
-            <circle
-              cx={cx}
-              cy={cy}
-              r={3}
-              fill="rgba(91, 171, 216, 0.2)"
-            />
-          : null
-        }
-        <path
-          d={d}
-          fill={this.props.color}
+        <Shape { ...this.props }
+          gestureMode={this.state.gestureMode}
+          getRef={() => {}}
         />
-        {
-          this.state.gestureMode ?
-            <Knob cx={cx} cy={cy} />
-          : null
-        }
-      </g>
+      </svg>
     );
   }
 }
-
-const Knob = (({ cx,cy }) =>
-  <KnobScaled>
-    <circle
-      cx={cx}
-      cy={cy}
-      r={0.12}
-      fill="white"
-    />
-    <circle
-      cx={cx}
-      cy={cy}
-      r={0.1}
-      fill="#2196F3"
-    />
-  </KnobScaled>
-)
-
-const KnobScaled = styled.g`
-
-`;

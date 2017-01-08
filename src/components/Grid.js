@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import Rect from './Rect';
 
 export default class Grid extends React.Component {
   render() {
