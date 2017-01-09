@@ -1,11 +1,24 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import styled from 'styled-components';
 import DraggableShape from '../components/DraggableShape';
 import Toolbox from '../components/Toolbox';
+import NavBar from '../components/NavBar';
 import { rotateShape, randomShape, randomGrid } from '../utils';
 import shapePrototypes from '../shapes';
+import { nextGame } from '../actions/userActions';
 
-export default class Root extends React.Component {
+function mapStateToProps(state) {
+  return {
+    1: 2
+  };
+}
+
+const actionProps = {
+  nextGame
+};
+
+class Root extends React.Component {
   constructor(props) {
     super(props);
 
@@ -14,6 +27,7 @@ export default class Root extends React.Component {
       grid,
       shapes,
       scale: 12,
+      stage: 'remember'
     }
   }
 
@@ -29,7 +43,7 @@ export default class Root extends React.Component {
             location: [x,y]
             }
           })
-    }))
+    }));
   }
 
   onShapeRotate(angle, i) {
@@ -45,7 +59,36 @@ export default class Root extends React.Component {
     }));
   }
 
+  onNextGame() {
+    console.log('onNextGame');
+    this.props.nextGame();
+    if (this.state.stage === 'remember') return;
+
+    const [grid, shapes] = randomGrid(shapePrototypes, 12, 12);
+    const [x, orderedShapes] = randomGrid(shapePrototypes, 12, 12);
+
+    setTimeout(() => {
+      this.setState((state,props) => {
+        return {
+          ...state,
+          orderedShapes,
+          stage: 'recall'
+        };
+      });
+    }, 5000);
+
+    this.setState((state,props) => {
+      return {
+        ...state,
+        grid,
+        shapes,
+        stage: 'remember'
+      };
+    })
+  }
+
   render() {
+    console.log(this);
     return (
         <Container>
           <SvgContainer>
@@ -79,12 +122,9 @@ export default class Root extends React.Component {
               }) }
             </Svg>
           </SvgContainer>
-          <ToolboxStyled>
-            <Toolbox
-              scale={this.state.scale}
-              shapes={this.state.shapes}
-            />
-          </ToolboxStyled>
+          <ToolboxContainer>
+            <NavBar onNextGame={() => this.onNextGame()} />
+          </ToolboxContainer>
         </Container>
     );
   }
@@ -101,18 +141,17 @@ const Container = styled.div`
 
 const SvgContainer = styled.div`
   @media (orientation: landscape) {
-    height: 100%;
+    max-width: 100vh;
+    max-height: 100vh;
+    flex: 1 1 0;
   }
 `;
 
 const Svg = styled.svg`
-  @media (orientation: landscape) {
-    height: 100%;
-  }
+
 `;
 
-const ToolboxStyled = styled.div`
-  flex: 1 1 100%;
+const ToolboxContainer = styled.div`
   @media (orientation: landscape) {
     background-color: lightgreen;
   }
@@ -120,3 +159,5 @@ const ToolboxStyled = styled.div`
     background-color: red;
   }
 `;
+
+export default connect(mapStateToProps, actionProps)(Root)
