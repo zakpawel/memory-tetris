@@ -6,22 +6,21 @@ import Toolbox from '../components/Toolbox';
 import NavBar from '../components/NavBar';
 import { rotateShape, randomShape, randomGrid } from '../utils';
 import shapePrototypes from '../shapes';
-import { nextGame } from '../actions/userActions';
+import { nextGame, shapeMove, shapeRotate } from '../actions/userActions';
 
 function mapStateToProps(state) {
-  return {
-    1: 2
-  };
+  return state;
 }
 
 const actionProps = {
-  nextGame
+  nextGame,
+  shapeMove,
+  shapeRotate
 };
 
 class Root extends React.Component {
   constructor(props) {
     super(props);
-
     const [grid, shapes] = randomGrid(shapePrototypes, 12, 12);
     this.state = {
       grid,
@@ -33,58 +32,17 @@ class Root extends React.Component {
 
   onShapeMove([x,y], i) {
     console.log('onShapeMove', x,y);
-    const m = this.state.scale;
-    this.setState((state, props) => ({
-        ...state,
-        shapes: Object.assign(
-          [], state.shapes,
-          { [i]: {
-            ...state.shapes[i],
-            location: [x,y]
-            }
-          })
-    }));
+    this.props.shapeMove([x,y], i);
   }
 
   onShapeRotate(angle, i) {
     console.log('onShapeRotate', angle);
-    this.setState((state, props) => ({
-        ...state,
-        shapes: Object.assign(
-          [],
-          state.shapes,
-          {
-            [i]: rotateShape(state.shapes[i], angle)
-          })
-    }));
+    this.props.shapeRotate(angle, i);
   }
 
   onNextGame() {
     console.log('onNextGame');
     this.props.nextGame();
-    if (this.state.stage === 'remember') return;
-
-    const [grid, shapes] = randomGrid(shapePrototypes, 12, 12);
-    const [x, orderedShapes] = randomGrid(shapePrototypes, 12, 12);
-
-    setTimeout(() => {
-      this.setState((state,props) => {
-        return {
-          ...state,
-          orderedShapes,
-          stage: 'recall'
-        };
-      });
-    }, 5000);
-
-    this.setState((state,props) => {
-      return {
-        ...state,
-        grid,
-        shapes,
-        stage: 'remember'
-      };
-    })
   }
 
   render() {
@@ -93,7 +51,7 @@ class Root extends React.Component {
         <Container>
           <SvgContainer>
             <Svg
-              viewBox={`0 0 ${this.state.scale} ${this.state.scale}`}
+              viewBox={`0 0 ${this.props.scale} ${this.props.scale}`}
               preserveAspectRatio="xMinYMin meet">
               <defs>
                 <pattern
@@ -109,12 +67,12 @@ class Root extends React.Component {
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#grid)" />
-              { this.state.shapes.map((shape, i) => {
+              { this.props.shapes.map((shape, i) => {
                 return (
                   <DraggableShape
                     { ...shape }
                     key={i}
-                    scale={this.state.scale}
+                    scale={this.props.scale}
                     onMove={e => this.onShapeMove(e, i)}
                     onRotate={e => this.onShapeRotate(e, i)}
                   />

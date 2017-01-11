@@ -8,6 +8,8 @@ var logger = minilog();
 
 var IS_PRODUCTION = process.env.NODE_ENV === 'production'
 var IS_DEVELOPMENT = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+var ADDRESS = '192.168.1.4';
+var PORT = 8080;
 
 if (IS_PRODUCTION) {
   logger('IN PRODUCTION');
@@ -52,7 +54,7 @@ if (IS_PRODUCTION) {
     'react-hot-loader/patch',
     ...config.entry,
     'webpack/hot/dev-server',
-    'webpack-dev-server/client?http://192.168.1.121:8080'
+    `webpack-dev-server/client?http://${ADDRESS}:${PORT}`
   ];
 
   var compiler = webpack(config);
@@ -65,5 +67,5 @@ if (IS_PRODUCTION) {
     }
   });
 
-  server.listen(8080, '192.168.1.121', function() {});
+  server.listen(PORT, ADDRESS, function() {});
 }

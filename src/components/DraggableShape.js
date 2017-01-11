@@ -61,12 +61,10 @@ export default class DraggableShape extends React.Component {
   }
 
   componentWillUnmout() {
-    window.removeEventListener('resize', this.resizeHandler);
   }
 
   componentDidMount() {
     console.log('componentDidMount');
-    window.addEventListener('resize', this.resizeHandler);
 
     this.svg = this.node.ownerSVGElement;
     const [snapx,snapy] = transformToPx(1,1,this.svg);
