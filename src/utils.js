@@ -67,6 +67,7 @@ export function random(from, to) {
 export function randomShape(shape, grid) {
   const validShapes = possibleShapes(shape, grid);
   const r = random(0, validShapes.length);
+  // check if validShapes not empty
   const randomShape = validShapes[r];
   return randomShape;
 }
@@ -83,12 +84,11 @@ export function emptyGrid(n,m) {
   return grid;
 }
 
-// mutates grid!
-export function randomGrid(shapes, n, m) {
+export function makeGrid(shapes, n, m, chooseShape) {
   const grid = emptyGrid(n,m);
   const newShapes = [];
   shapes.forEach(shape => {
-    const newShape = randomShape(shape, grid);
+    const newShape = chooseShape(shape, grid);
     const { location: [lx,ly] } = newShape;
     newShape.points.forEach(([x,y]) => {
       grid[y+ly][x+lx] = 1;
@@ -97,6 +97,35 @@ export function randomGrid(shapes, n, m) {
   });
   return [grid, newShapes];
 }
+
+export function randomGrid(shapes, n, m) {
+  return makeGrid(shapes, n, m, randomShape);
+}
+
+export function orderedGrid(shapes, n, m) {
+  return makeGrid(shapes, n, m, (shape, grid) => {
+    const validShapes = possibleShapes(shape, grid);
+    // check if validShapes not empty
+    const randomShape = validShapes[0];
+    return randomShape;
+  });
+}
+
+
+
+// export function randomGrid(shapes, n, m) {
+//   const grid = emptyGrid(n,m);
+//   const newShapes = [];
+//   shapes.forEach(shape => {
+//     const newShape = randomShape(shape, grid);
+//     const { location: [lx,ly] } = newShape;
+//     newShape.points.forEach(([x,y]) => {
+//       grid[y+ly][x+lx] = 1;
+//     });
+//     newShapes.push(newShape);
+//   });
+//   return [grid, newShapes];
+// }
 
 export function transformToPx(x, y, svg) {
   const point = svg.createSVGPoint();

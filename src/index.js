@@ -3,13 +3,20 @@ import React from 'react';
 import { AppContainer } from 'react-hot-loader';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux'
-import { createStore } from 'redux';
+import { createStore, compose, applyMiddleware } from 'redux';
+import thunkMiddleware from 'redux-thunk';
 
 import Root from './containers/Root';
 import { game } from './reducers/game';
 
 // const store = createStore(game);
-const store = createStore(game, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
+const store = createStore(
+  game,
+  compose(
+    applyMiddleware(thunkMiddleware),
+    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  )
+);
 
 render(
   <AppContainer>

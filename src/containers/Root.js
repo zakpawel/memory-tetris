@@ -6,14 +6,17 @@ import Toolbox from '../components/Toolbox';
 import NavBar from '../components/NavBar';
 import { rotateShape, randomShape, randomGrid } from '../utils';
 import shapePrototypes from '../shapes';
-import { nextGame, shapeMove, shapeRotate } from '../actions/userActions';
+import { nextGameAsync, shapeMove, shapeRotate } from '../actions/userActions';
 
 function mapStateToProps(state) {
-  return state;
+  return {
+    ...state.games[state.currentGame],
+    scale: state.scale
+  };
 }
 
 const actionProps = {
-  nextGame,
+  nextGame: nextGameAsync,
   shapeMove,
   shapeRotate
 };
@@ -21,13 +24,6 @@ const actionProps = {
 class Root extends React.Component {
   constructor(props) {
     super(props);
-    const [grid, shapes] = randomGrid(shapePrototypes, 12, 12);
-    this.state = {
-      grid,
-      shapes,
-      scale: 12,
-      stage: 'remember'
-    }
   }
 
   onShapeMove([x,y], i) {
