@@ -27,11 +27,13 @@ class Root extends React.Component {
   }
 
   onShapeMove([x,y], i) {
+    if (this.props.stage !== 'RECALL_TIME_LAPSE') return;
     console.log('onShapeMove', x,y);
     this.props.shapeMove([x,y], i);
   }
 
   onShapeRotate(angle, i) {
+    if (this.props.stage !== 'RECALL_TIME_LAPSE') return;
     console.log('onShapeRotate', angle);
     this.props.shapeRotate(angle, i);
   }
@@ -42,7 +44,6 @@ class Root extends React.Component {
   }
 
   render() {
-    console.log(this);
     return (
         <Container>
           <SvgContainer>
@@ -71,12 +72,14 @@ class Root extends React.Component {
                     scale={this.props.scale}
                     onMove={e => this.onShapeMove(e, i)}
                     onRotate={e => this.onShapeRotate(e, i)}
+                    canMove={this.props.stage === 'RECALL_TIME_LAPSE'}
                   />
                 );
               }) }
             </Svg>
           </SvgContainer>
           <ToolboxContainer>
+            <div>{this.props.rememberTimeLeft} {this.props.recallTimeLeft}</div>
             <NavBar onNextGame={() => this.onNextGame()} />
           </ToolboxContainer>
         </Container>

@@ -52,6 +52,7 @@ export default class DraggableShape extends React.Component {
   }
 
   componentDidUpdate() {
+    if (this.internalState.moving) return;
     this.updateStateFromProps();
     const [x,y,a] = this.getSvgCoordinates();
     const { center: [cx,cy] } = this.props;
@@ -121,6 +122,7 @@ export default class DraggableShape extends React.Component {
 
   setPxCoordinates(event) {
     this.internalState = {
+      moving: true,
       x: this.internalState.x + event.dx,
       y: this.internalState.y + event.dy,
       a: this.internalState.a + (event.da ? event.da : 0)
@@ -130,6 +132,7 @@ export default class DraggableShape extends React.Component {
   setAngleCoordinates(event) {
     this.internalState = {
       ...this.internalState,
+      moving: true,
       a: this.internalState.a + (event.da ? event.da : 0)
     };
   }
@@ -141,7 +144,7 @@ export default class DraggableShape extends React.Component {
   }
 
   onGestureMove(event) {
-    if (!this.state.gestureMode) return;
+    if (!this.state.gestureMode || !this.props.canMove) return;
 
     const t = event.target;
     const { center: [cx,cy], angle } = this.props;
@@ -158,25 +161,37 @@ export default class DraggableShape extends React.Component {
     const n = Math.round(a/90);
     const na = n*90;
 
+    this.internalState = {
+      ...this.internalState,
+      moving: false
+    }
+
     this.props.onRotate(na);
   }
 
-  onDragEnd(event) {
-    const t = event.target;
-    const { center: [cx,cy], angle: a } = this.props;
-    const [x,y] = this.getSvgCoordinates();
-    t.setAttribute('transform', transform(x, y, cx, cy, a));
-
-    this.props.onMove([x,y]);
-  }
-
   onDragMove(event) {
-    if (this.state.gestureMode) return;
+    if (this.state.gestureMode || !this.props.canMove) return;
     const t = event.target;
     const { center: [cx,cy], angle: a } = this.props;
     this.setPxCoordinates(event);
     const [x,y] = this.getSvgCoordinates();
     t.setAttribute('transform', transform(x, y, cx, cy, a));
+  }
+
+  onDragEnd(event) {
+    const t = event.target;
+    const { center: [cx,cy], angle: a } = this.props;
+    let [x,y] = this.getSvgCoordinates();
+    x = Math.round(x);
+    y = Math.round(y);
+    t.setAttribute('transform', transform(x, y, cx, cy, a));
+
+    this.internalState = {
+      ...this.internalState,
+      moving: false
+    }
+
+    this.props.onMove([x,y]);
   }
 
   render() {

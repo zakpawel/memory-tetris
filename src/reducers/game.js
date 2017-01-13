@@ -1,15 +1,26 @@
 import shapePrototypes from '../shapes';
-import { rotateShape, randomShape, randomGrid, emptyGrid, orderedGrid } from '../utils';
+import {
+  rotateShape,
+  randomShape,
+  randomGrid,
+  emptyGrid,
+  orderedGrid,
+  checkGrid,
+} from '../utils';
+
+const rememberTime = 2000;
+const recallTime = 20000;
+const gridSize = 12;
 
 const initialState = {
   currentGame: 0,
-  scale: 12,
+  scale: gridSize,
   games: {
     0: {
       shapes: shapePrototypes,
-      grid: emptyGrid(12,12),
-      rememberTimeLeft: 5000,
-      recallTimeLeft: 20000,
+      grid: emptyGrid(gridSize,gridSize),
+      rememberTimeLeft: rememberTime,
+      recallTimeLeft: recallTime,
       stage: 'BEGIN'
     }
   }
@@ -17,6 +28,36 @@ const initialState = {
 
 export function game(state = initialState, action) {
   switch (action.type) {
+    case 'REMEMBER_TIME_TICK': {
+      let timeLeft = state.games[state.currentGame].rememberTimeLeft - 1000;
+      timeLeft = timeLeft < 0 ? 0 : timeLeft;
+      return {
+        ...state,
+        games: {
+          ...state.games,
+          [state.currentGame]: {
+            ...state.games[state.currentGame],
+            rememberTimeLeft: timeLeft
+          }
+        }
+      }
+    }
+
+    case 'RECALL_TIME_TICK': {
+      let timeLeft = state.games[state.currentGame].recallTimeLeft - 1000;
+      timeLeft = timeLeft < 0 ? 0 : timeLeft;
+      return {
+        ...state,
+        games: {
+          ...state.games,
+          [state.currentGame]: {
+            ...state.games[state.currentGame],
+            recallTimeLeft: timeLeft
+          }
+        }
+      }
+    }
+
     case 'NEXT_GAME': {
       const { scale, currentGame } = state;
       const [grid, shapes] = randomGrid(shapePrototypes, scale, scale);
@@ -28,6 +69,8 @@ export function game(state = initialState, action) {
           ...state.games,
           [nextGame]: {
             ...state.games[nextGame],
+            rememberTimeLeft: rememberTime,
+            recallTimeLeft: recallTime,
             shapes,
             grid,
             stage: 'REMEMBER_TIME_LAPSE'
@@ -55,13 +98,17 @@ export function game(state = initialState, action) {
 
     case 'RECALL_TIME_FINISHED': {
       const gameId = action.payload;
+      const game = state.games[gameId];
+      console.log(game)
+      const gameResult = checkGrid(game.shapes, game.grid);
+      const stage = gameResult ? 'END_OK' : 'END_FAIL';
       return {
         ...state,
         games: {
           ...state.games,
           [gameId]: {
             ...state.games[gameId],
-            stage: 'BEGIN'
+            stage
           }
         }
       };

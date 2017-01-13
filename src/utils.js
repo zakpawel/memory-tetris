@@ -111,21 +111,23 @@ export function orderedGrid(shapes, n, m) {
   });
 }
 
-
-
-// export function randomGrid(shapes, n, m) {
-//   const grid = emptyGrid(n,m);
-//   const newShapes = [];
-//   shapes.forEach(shape => {
-//     const newShape = randomShape(shape, grid);
-//     const { location: [lx,ly] } = newShape;
-//     newShape.points.forEach(([x,y]) => {
-//       grid[y+ly][x+lx] = 1;
-//     });
-//     newShapes.push(newShape);
-//   });
-//   return [grid, newShapes];
-// }
+export function checkGrid(shapes, grid) {
+  let newGrid = [...grid];
+  shapes.forEach(({points, location}) => {
+    const absPoints = absoluteShapePoints(points, location);
+    absPoints.forEach(([x,y]) => {
+      newGrid[y][x] = newGrid[y][x] + 1;
+    });
+  });
+  for (let i=0; i<newGrid.length; i++) {
+    for (let j=0; j<newGrid[i].length; j++) {
+      if (newGrid[i][j] === 1) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 export function transformToPx(x, y, svg) {
   const point = svg.createSVGPoint();
