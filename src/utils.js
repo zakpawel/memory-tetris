@@ -95,7 +95,7 @@ export function makeGrid(shapes, n, m, chooseShape) {
     });
     newShapes.push(newShape);
   });
-  return [grid, newShapes];
+  return newShapes;
 }
 
 export function randomGrid(shapes, n, m) {
@@ -109,24 +109,6 @@ export function orderedGrid(shapes, n, m) {
     const randomShape = validShapes[0];
     return randomShape;
   });
-}
-
-export function checkGrid(shapes, grid) {
-  let newGrid = [...grid];
-  shapes.forEach(({points, location}) => {
-    const absPoints = absoluteShapePoints(points, location);
-    absPoints.forEach(([x,y]) => {
-      newGrid[y][x] = newGrid[y][x] + 1;
-    });
-  });
-  for (let i=0; i<newGrid.length; i++) {
-    for (let j=0; j<newGrid[i].length; j++) {
-      if (newGrid[i][j] === 1) {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 export function transformToPx(x, y, svg) {

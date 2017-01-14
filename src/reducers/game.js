@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import shapePrototypes from '../shapes';
 import {
   rotateShape,
@@ -17,8 +18,8 @@ const initialState = {
   scale: gridSize,
   games: {
     0: {
+      correctShapes: shapePrototypes,
       shapes: shapePrototypes,
-      grid: emptyGrid(gridSize,gridSize),
       rememberTimeLeft: rememberTime,
       recallTimeLeft: recallTime,
       stage: 'BEGIN'
@@ -60,7 +61,7 @@ export function game(state = initialState, action) {
 
     case 'NEXT_GAME': {
       const { scale, currentGame } = state;
-      const [grid, shapes] = randomGrid(shapePrototypes, scale, scale);
+      const shapes = randomGrid(shapePrototypes, scale, scale);
       const nextGame = currentGame + 1;
       return {
         ...state,
@@ -71,8 +72,8 @@ export function game(state = initialState, action) {
             ...state.games[nextGame],
             rememberTimeLeft: rememberTime,
             recallTimeLeft: recallTime,
+            correctShapes: shapes,
             shapes,
-            grid,
             stage: 'REMEMBER_TIME_LAPSE'
           }
         }
@@ -82,7 +83,7 @@ export function game(state = initialState, action) {
     case 'REMEMBER_TIME_FINISHED': {
       const gameId = action.payload;
       const { scale } = state;
-      const [grid, shapes] = orderedGrid(shapePrototypes, scale, scale);
+      const shapes = orderedGrid(shapePrototypes, scale, scale);
       return {
         ...state,
         games: {
@@ -100,14 +101,15 @@ export function game(state = initialState, action) {
       const gameId = action.payload;
       const game = state.games[gameId];
       console.log(game)
-      const gameResult = checkGrid(game.shapes, game.grid);
+      const gameResult = isEqual(game.shapes, game.correctShapes);
       const stage = gameResult ? 'END_OK' : 'END_FAIL';
       return {
         ...state,
         games: {
           ...state.games,
           [gameId]: {
-            ...state.games[gameId],
+            ...game,
+            shapes: game.correctShapes,
             stage
           }
         }
