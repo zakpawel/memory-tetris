@@ -26,29 +26,11 @@ export default class DraggableShape extends React.Component {
     };
   }
 
-  setSnapGrid() {
-    const [sx,sy] = transformToPx(1,1,this.svg);
-    this.interactable.snap({
-      targets: [
-        interact.createSnapGrid({ x: sx, y: sy })
-      ],
-      endOnly: true,
-      range: Infinity,
-      relativePoints: [ { x: 0, y: 0 } ]
-    })
-  }
-
-  updateStateFromProps() {
-    const { location: [lx,ly], angle: a } = this.props;
-    const [x,y] = transformToPx(lx,ly,this.svg);
-    this.internalState = {
-      ...this.internalState,
-      x,y,a,da:0
-    }
-  }
-
-  resizeHandler(event) {
-    this.setSnapGrid();
+  componentWillReceiveProps(nextProps) {
+    this.setState((state,props) => ({
+      ...state,
+      rotationMode: state.rotationMode && nextProps.canMove
+    }));
   }
 
   componentDidUpdate() {
@@ -96,6 +78,22 @@ export default class DraggableShape extends React.Component {
 
   }
 
+  resizeHandler(event) {
+    this.setSnapGrid();
+  }
+
+  setSnapGrid() {
+    const [sx,sy] = transformToPx(1,1,this.svg);
+    this.interactable.snap({
+      targets: [
+        interact.createSnapGrid({ x: sx, y: sy })
+      ],
+      endOnly: true,
+      range: Infinity,
+      relativePoints: [ { x: 0, y: 0 } ]
+    })
+  }
+
   setPxCoordinates(dx, dy) {
     this.internalState = {
       ...this.internalState,
@@ -118,10 +116,13 @@ export default class DraggableShape extends React.Component {
     };
   }
 
-  getSvgCoordinates() {
-    const { x,y,a,da } = this.internalState;
-    const [tx,ty] = transformToSvg(x,y,this.svg);
-    return [tx,ty,a+da];
+  updateStateFromProps() {
+    const { location: [lx,ly], angle: a } = this.props;
+    const [x,y] = transformToPx(lx,ly,this.svg);
+    this.internalState = {
+      ...this.internalState,
+      x,y,a,da:0
+    }
   }
 
   updateTargetPosition(event) {
@@ -167,6 +168,30 @@ export default class DraggableShape extends React.Component {
     this.props.onMove([x,y]);
   }
 
+  getSvgCoordinates() {
+    const { x,y,a,da } = this.internalState;
+    const [tx,ty] = transformToSvg(x,y,this.svg);
+    return [tx,ty,a+da];
+  }
+
+  computeAngle(event) {
+    const { location: [lx,ly], center: [cx,cy], angle: a } = this.props;
+    const [xx,yy] = transformToPx(lx+cx,ly+cy,this.svg);
+    const { clientX0, clientY0, clientX, clientY } = event;
+
+    const x2 = clientX - xx;
+    const x1 = clientX0 - xx;
+    const y2 = clientY - yy;
+    const y1 = clientY0 - yy;
+
+    const dot = x1*x2 + y1*y2;
+    const det = x1*y2 - y1*x2;
+    let angle = Math.atan2(det, dot);
+    angle = angle / Math.PI * 180;
+
+    return angle;
+  }
+
   onTap(event) {
     this.setState((state, props) => {
       return (
@@ -208,24 +233,6 @@ export default class DraggableShape extends React.Component {
     } else {
       this.updateFinalPosition(event.target);
     }
-  }
-
-  computeAngle(event) {
-    const { location: [lx,ly], center: [cx,cy], angle: a } = this.props;
-    const [xx,yy] = transformToPx(lx+cx,ly+cy,this.svg);
-    const { clientX0, clientY0, clientX, clientY } = event;
-
-    const x2 = clientX - xx;
-    const x1 = clientX0 - xx;
-    const y2 = clientY - yy;
-    const y1 = clientY0 - yy;
-
-    const dot = x1*x2 + y1*y2;
-    const det = x1*y2 - y1*x2;
-    let angle = Math.atan2(det, dot);
-    angle = angle / Math.PI * 180;
-
-    return angle;
   }
 
   render() {

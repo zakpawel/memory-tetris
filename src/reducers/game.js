@@ -11,7 +11,7 @@ import {
 
 const rememberTime = 2000;
 const recallTime = 20000;
-const gridSize = 12;
+const gridSize = 8;
 
 const initialState = {
   currentGame: 0,
@@ -100,7 +100,6 @@ export function game(state = initialState, action) {
     case 'RECALL_TIME_FINISHED': {
       const gameId = action.payload;
       const game = state.games[gameId];
-      console.log(game)
       const gameResult = isEqual(game.shapes, game.correctShapes);
       const stage = gameResult ? 'END_OK' : 'END_FAIL';
       return {

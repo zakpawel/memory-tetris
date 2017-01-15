@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import DraggableShape from '../components/DraggableShape';
-import Toolbox from '../components/Toolbox';
 import { rotateShape, randomShape, randomGrid } from '../utils';
 import shapePrototypes from '../shapes';
 

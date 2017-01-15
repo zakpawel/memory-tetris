@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 import DraggableShape from '../components/DraggableShape';
-import Toolbox from '../components/Toolbox';
 import NavBar from '../components/NavBar';
 import { rotateShape, randomShape, randomGrid } from '../utils';
 import shapePrototypes from '../shapes';
@@ -28,18 +27,15 @@ class Root extends React.Component {
 
   onShapeMove([x,y], i) {
     if (this.props.stage !== 'RECALL_TIME_LAPSE') return;
-    console.log('onShapeMove', x,y);
     this.props.shapeMove([x,y], i);
   }
 
   onShapeRotate(angle, i) {
     if (this.props.stage !== 'RECALL_TIME_LAPSE') return;
-    console.log('onShapeRotate', angle);
     this.props.shapeRotate(angle, i);
   }
 
   onNextGame() {
-    console.log('onNextGame');
     this.props.nextGame();
   }
 
