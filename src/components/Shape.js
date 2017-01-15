@@ -12,12 +12,9 @@ export default class Shape extends React.Component {
     });
 
     return (
-      <g
-        ref={this.props.getRef}
-        transform={transform(lx,ly,cx,cy,a)}
-      >
+      <g transform={transform(lx,ly,cx,cy,a)}>
         {
-          this.props.gestureMode ?
+          this.props.rotationMode ?
             <circle
               cx={cx}
               cy={cy}
@@ -31,7 +28,7 @@ export default class Shape extends React.Component {
           fill={this.props.color}
         />
         {
-          this.props.gestureMode ?
+          this.props.rotationMode ?
             <Knob cx={cx} cy={cy} />
           : null
         }

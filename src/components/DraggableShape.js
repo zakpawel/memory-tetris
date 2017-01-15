@@ -15,13 +15,14 @@ export default class DraggableShape extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      gestureMode: false
+      rotationMode: false
     };
 
     this.internalState = {
       x: 0,
       y: 0,
-      a: 0
+      a: 0,
+      da: 0
     };
   }
 
@@ -42,12 +43,11 @@ export default class DraggableShape extends React.Component {
     const [x,y] = transformToPx(lx,ly,this.svg);
     this.internalState = {
       ...this.internalState,
-      x,y,a
+      x,y,a,da:0
     }
   }
 
-  resizeHandler(e) {
-    console.log('Resize', e);
+  resizeHandler(event) {
     this.setSnapGrid();
   }
 
@@ -57,22 +57,24 @@ export default class DraggableShape extends React.Component {
     const [x,y,a] = this.getSvgCoordinates();
     const { center: [cx,cy] } = this.props;
 
-    // why render() does not update this attribute?
+    // XXX: why render() does not update this attribute?
     this.node.setAttribute('transform', transform(x, y, cx, cy, a));
   }
 
   componentWillUnmout() {
+    // XXX: some clean-up?
   }
 
   componentDidMount() {
-    console.log('componentDidMount');
-
+    this.node = ReactDOM.findDOMNode(this);
     this.svg = this.node.ownerSVGElement;
     const [snapx,snapy] = transformToPx(1,1,this.svg);
+    this.updateStateFromProps();
 
     this.interactable =
       interact
         .pointerMoveTolerance(4)(ReactDOM.findDOMNode(this.node))
+        .preventDefault('always')
         .draggable({
       	   snap: {
             targets: [
@@ -82,109 +84,80 @@ export default class DraggableShape extends React.Component {
             range: Infinity,
             relativePoints: [ { x: 0, y: 0 } ]
           },
-          // inertia: true,
-          maxPerElement: 10,
-          // keep the element within the area of it's parent
           restrict: {
-            restriction: "parent",
+            restriction: 'parent',
             endOnly: true,
             elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
           },
-          // enable autoScroll
-          // autoScroll: true,
-
-          // call this function on every dragmove event
           onmove: this.onDragMove.bind(this),
           onend: this.onDragEnd.bind(this)
         })
-        .gesturable({
-          maxPerElement: 10,
-          onmove: this.onGestureMove.bind(this),
-          onend: this.onGestureEnd.bind(this)
-        })
-        .preventDefault('always')
-        // .actionChecker(
-        //   function (pointer, event, action,
-        //      interactable, element, interaction) {
-        //        console.log(pointer, event, action)
-        //        action.name = 'gesture';
-        //        return action;
-        // });
+        .on('tap', this.onTap.bind(this));
 
-        .on('tap', event => {
-          this.setState((state, props) => ({
-            ...state,
-            gestureMode: !state.gestureMode
-          }))
-        })
-      this.updateStateFromProps();
   }
 
-  setPxCoordinates(event) {
+  setPxCoordinates(dx, dy) {
     this.internalState = {
-      moving: true,
-      x: this.internalState.x + event.dx,
-      y: this.internalState.y + event.dy,
-      a: this.internalState.a + (event.da ? event.da : 0)
+      ...this.internalState,
+      x: this.internalState.x + dx,
+      y: this.internalState.y + dy,
     };
   }
 
-  setAngleCoordinates(event) {
+  setDA(da) {
     this.internalState = {
       ...this.internalState,
-      moving: true,
-      a: this.internalState.a + (event.da ? event.da : 0)
+      da
+    };
+  }
+
+  setMoving(moving) {
+    this.internalState = {
+      ...this.internalState,
+      moving
     };
   }
 
   getSvgCoordinates() {
-    const { x,y,a } = this.internalState;
+    const { x,y,a,da } = this.internalState;
     const [tx,ty] = transformToSvg(x,y,this.svg);
-    return [tx,ty,a];
+    return [tx,ty,a+da];
   }
 
-  onGestureMove(event) {
-    if (!this.state.gestureMode || !this.props.canMove) return;
-
-    const t = event.target;
-    const { center: [cx,cy], angle } = this.props;
-    this.setAngleCoordinates(event);
-    const [x,y,a] = this.getSvgCoordinates();
-    t.setAttribute('transform', transform(x, y, cx, cy, a));
-  }
-
-  onGestureEnd(event) {
-    // figure out why gesture move is so slugish
-    const t = event.target;
-    // const { center: [cx,cy] } = this.props;
-    const [x,y,a] = this.getSvgCoordinates();
-    const n = Math.round(a/90);
-    const na = n*90;
-
-    this.internalState = {
-      ...this.internalState,
-      moving: false
-    }
-
-    this.props.onRotate(na);
-  }
-
-  onDragMove(event) {
-    if (this.state.gestureMode || !this.props.canMove) return;
-    const t = event.target;
+  updateTargetPosition(event) {
+    const {target: t, dx, dy, da } = event;
     const { center: [cx,cy], angle: a } = this.props;
-    this.setPxCoordinates(event);
+    this.setPxCoordinates(dx, dy, da);
+    this.setMoving(true);
     const [x,y] = this.getSvgCoordinates();
     t.setAttribute('transform', transform(x, y, cx, cy, a));
   }
 
-  onDragEnd(event) {
-    const t = event.target;
+  updateTargetByAngle(target, da) {
+    const { center: [cx,cy] } = this.props;
+    this.setDA(da);
+    this.setMoving(true);
+    const [x,y,a] = this.getSvgCoordinates();
+    target.setAttribute('transform', transform(x, y, cx, cy, a));
+  }
+
+  updateFinalAngle() {
+    const [x,y,a] = this.getSvgCoordinates();
+    const n = Math.round(a/90);
+    const na = n*90;
+
+    this.setDA(0);
+    this.setMoving(false);
+
+    this.props.onRotate(na);
+  }
+
+  updateFinalPosition(target) {
     const { center: [cx,cy], angle: a } = this.props;
     let [x,y] = this.getSvgCoordinates();
     x = Math.round(x);
     y = Math.round(y);
-    t.setAttribute('transform', transform(x, y, cx, cy, a));
+    target.setAttribute('transform', transform(x, y, cx, cy, a));
 
     this.internalState = {
       ...this.internalState,
@@ -194,11 +167,71 @@ export default class DraggableShape extends React.Component {
     this.props.onMove([x,y]);
   }
 
+  onTap(event) {
+    this.setState((state, props) => {
+      return (
+        props.canMove
+        ? {
+          ...state,
+          rotationMode: !state.rotationMode
+        }
+        : state
+      );
+    })
+  }
+
+  onDragMove(event) {
+    if (!this.props.canMove) return;
+
+    if (this.state.rotationMode) {
+      if (!event.snap.locked) {
+        const angle = this.computeAngle(event);
+        this.updateTargetByAngle(event.target, angle)
+      }
+    } else {
+      this.updateTargetPosition(event);
+    }
+  }
+
+  onDragEnd(event) {
+    if (!this.props.canMove) return;
+
+    if (this.state.rotationMode) {
+      this.setState((state,props) => {
+        return {
+          ...state,
+          rotationMode: false
+        };
+      }, () => {
+        this.updateFinalAngle(event);
+      });
+    } else {
+      this.updateFinalPosition(event.target);
+    }
+  }
+
+  computeAngle(event) {
+    const { location: [lx,ly], center: [cx,cy], angle: a } = this.props;
+    const [xx,yy] = transformToPx(lx+cx,ly+cy,this.svg);
+    const { clientX0, clientY0, clientX, clientY } = event;
+
+    const x2 = clientX - xx;
+    const x1 = clientX0 - xx;
+    const y2 = clientY - yy;
+    const y1 = clientY0 - yy;
+
+    const dot = x1*x2 + y1*y2;
+    const det = x1*y2 - y1*x2;
+    let angle = Math.atan2(det, dot);
+    angle = angle / Math.PI * 180;
+
+    return angle;
+  }
+
   render() {
     return (
       <Shape { ...this.props }
-        gestureMode={this.state.gestureMode}
-        getRef={node => this.node = node}
+        rotationMode={this.state.rotationMode}
       />
     );
   }

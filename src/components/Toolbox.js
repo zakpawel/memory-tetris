@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import interact from 'interactjs';
-import ToolboxDraggableShape from '../components/ToolboxDraggableShape';
 import  {
   transformToPx,
   transformToSvg,
