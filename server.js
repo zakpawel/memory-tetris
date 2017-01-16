@@ -1,19 +1,17 @@
 var webpackDevServer = require('webpack-dev-server');
 var webpack = require('webpack');
 var minilog = require('minilog');
-var config = require('./webpack.config.js');
+var webpackConfig = require('./webpack.config.js');
 
 minilog.enable(); // logs to stdout
 var logger = minilog();
 
 var IS_PRODUCTION = process.env.NODE_ENV === 'production'
 var IS_DEVELOPMENT = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
-var ADDRESS = '192.168.1.4';
-var PORT = 8080;
 
 if (IS_PRODUCTION) {
   logger('IN PRODUCTION');
-  config.plugins.push(
+  webpackConfig.plugins.push(
     new webpack.EnvironmentPlugin(['NODE_ENV']),
     new webpack.DefinePlugin({
       'IS_PRODUCTION': true
@@ -24,7 +22,7 @@ if (IS_PRODUCTION) {
         }
     })
   );
-  var compiler = webpack(config);
+  var compiler = webpack(webpackConfig);
   compiler.run((err, stats) => logger(err, stats.toString({
     hash: true,
     version: true,
@@ -42,30 +40,32 @@ if (IS_PRODUCTION) {
     colors: true
   })));
 } else if (IS_DEVELOPMENT) {
+  var config = require('./config.json');
+  logger(config);
   logger('IN DEVELOPMENT');
-  config.devtool = 'sourcemap';
-  config.plugins.push(
+  webpackConfig.devtool = 'sourcemap';
+  webpackConfig.plugins.push(
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       'IS_DEVELOPMENT': true
     })
   );
-  config.entry = [
+  webpackConfig.entry = [
     'react-hot-loader/patch',
-    ...config.entry,
+    ...webpackConfig.entry,
     'webpack/hot/dev-server',
-    `webpack-dev-server/client?http://${ADDRESS}:${PORT}`
+    `webpack-dev-server/client?http://${config.ADDRESS}:${config.PORT}`
   ];
 
-  var compiler = webpack(config);
+  var compiler = webpack(webpackConfig);
   var server = new webpackDevServer(compiler, {
     hot: true,
-    filename: config.output.filename,
-    publicPath: config.output.publicPath,
+    filename: webpackConfig.output.filename,
+    publicPath: webpackConfig.output.publicPath,
     stats: {
       colors: true
     }
   });
 
-  server.listen(PORT, ADDRESS, function() {});
+  server.listen(config.PORT, config.ADDRESS, function() {});
 }
