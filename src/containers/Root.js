@@ -3,13 +3,18 @@ import { connect } from 'react-redux';
 import styled from 'styled-components';
 import DraggableShape from '../components/DraggableShape';
 import NavBar from '../components/NavBar';
+import Info from '../components/Info';
+import Levels from '../components/Levels';
+import Counter from '../components/Counter';
+import Button from '../components/Button';
 import { rotateShape, randomShape, randomGrid } from '../utils';
 import shapePrototypes from '../shapes';
-import { nextGameAsync, shapeMove, shapeRotate } from '../actions/userActions';
+import { selectLevel, nextGameAsync, shapeMove, shapeRotate } from '../actions/userActions';
 
 function mapStateToProps(state) {
   return {
     ...state.games[state.currentGame],
+    level: state.level,
     scale: state.scale
   };
 }
@@ -17,7 +22,8 @@ function mapStateToProps(state) {
 const actionProps = {
   nextGame: nextGameAsync,
   shapeMove,
-  shapeRotate
+  shapeRotate,
+  selectLevel
 };
 
 class Root extends React.Component {
@@ -37,6 +43,10 @@ class Root extends React.Component {
 
   onNextGame() {
     this.props.nextGame();
+  }
+
+  onSelectLevel(level) {
+    this.props.selectLevel(level);
   }
 
   render() {
@@ -75,8 +85,29 @@ class Root extends React.Component {
             </Svg>
           </SvgContainer>
           <ToolboxContainer>
-            <div>{this.props.rememberTimeLeft} {this.props.recallTimeLeft}</div>
-            <NavBar onNextGame={() => this.onNextGame()} />
+            <NavBar>
+              <Counter>
+                <div>
+                  {
+                    (this.props.stage === 'BEGIN' ||
+                    this.props.stage === 'REMEMBER_TIME_LAPSE') ?
+                    this.props.rememberTimeLeft :
+                    this.props.recallTimeLeft
+                  }
+                </div>
+              </Counter>
+
+              <Button
+                onClick={e => this.onNextGame()}
+              >
+                Next
+              </Button>
+              <Levels
+                current={this.props.level}
+                available={[1,2,3,4]}
+                onSelect={level => this.onSelectLevel(level)}
+              />
+            </NavBar>
           </ToolboxContainer>
         </Container>
     );
@@ -90,6 +121,7 @@ const Container = styled.div`
   }
   z-index: 1000;
   touch-action: none;
+  width: 100%;
 `;
 
 const SvgContainer = styled.div`
@@ -105,11 +137,12 @@ const Svg = styled.svg`
 `;
 
 const ToolboxContainer = styled.div`
+  background-color: #5fa0f3;
   @media (orientation: landscape) {
-    background-color: lightgreen;
+    min-width: 4rem;
   }
   @media (orientation: portrait) {
-    background-color: red;
+    min-height: 4rem;
   }
 `;
 

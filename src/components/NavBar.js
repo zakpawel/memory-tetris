@@ -13,43 +13,45 @@ export default class NavBar extends React.Component {
   render() {
     return (
       <Container>
-        <slider>
-
-        </slider>
-        <Button
-          onClick={e => this.onNextGame()}
-        >
-          <Anchor>Next</Anchor>
-        </Button>
-        <Button
-          onClick={e => this.onNextGame}
-        >
-          <Anchor>Retry</Anchor>
-        </Button>
-        <Button
-          onClick={e => this.onNextGame}
-        >
-          <Anchor>Some pretty picture here</Anchor>
-        </Button>
+        {
+          React.Children.map(this.props.children, (child) => {
+            return (
+              <ChildContainer>
+                {child}
+              </ChildContainer>
+            )
+          })
+        }
       </Container>
     );
   }
 }
 
-const Anchor = styled.a`
-  display: block;
-`;
+const ChildContainer = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  font-size: 2rem;
+  text-shadow: 0px 0px 4px black;
+  font-family: arial black;
+  color: white;
 
-const Button = styled.div`
-  background-color: lightblue;
-  flex: 1 1 0;
+  @media (orientation: landscape) {
+    margin: 0 1rem;
+  }
+
+  @media (orientation: portrait) {
+    margin: 1rem 0;
+  }
 `;
 
 const Container = styled.div`
   display: flex;
-  height: 100%;
   @media (orientation: landscape) {
     flex-direction: column;
+    height: 100%;
   }
   @media (orientation: portrait) {
     flex-direction: row;

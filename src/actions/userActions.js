@@ -2,35 +2,49 @@
 
 export function nextGameAsync() {
   return (dispatch, getState) => {
-    dispatch(nextGame());
-    const gameId = getState().currentGame;
-    const rememberInterval = setInterval(() => {
-      if (getState().currentGame === gameId &&
+    if (getState().games[getState().currentGame].stage === 'FINISHED'
+  || getState().games[getState().currentGame].stage === 'BEGIN') {
+      dispatch(nextGame());
+      const gameId = getState().currentGame;
+      const rememberInterval = setInterval(() => {
+        if (getState().currentGame === gameId &&
         getState().games[gameId].stage === 'REMEMBER_TIME_LAPSE') {
-          if (getState().games[gameId].rememberTimeLeft > 0) {
+          if (getState().games[gameId].rememberTimeLeft > 1) {
             dispatch(rememberTimeTick());
           } else {
             clearInterval(rememberInterval);
+            dispatch(rememberTimeTick());
             dispatch(rememberTimeFinished(gameId));
             const recallInterval = setInterval(() => {
               if (getState().currentGame === gameId &&
-                getState().games[gameId].stage === 'RECALL_TIME_LAPSE') {
-                  if (getState().games[gameId].recallTimeLeft > 0) {
-                    dispatch(recallTimeTick());
-                  } else {
-                    clearInterval(recallInterval);
-                    dispatch(recallTimeFinished(gameId));
-                  }
+              getState().games[gameId].stage === 'RECALL_TIME_LAPSE') {
+                if (getState().games[gameId].recallTimeLeft > 1) {
+                  dispatch(recallTimeTick());
+                } else {
+                  clearInterval(recallInterval);
+                  dispatch(recallTimeTick());
+                  dispatch(recallTimeFinished(gameId));
+                }
               } else {
                 clearInterval(recallInterval);
               }
             }, 1000);
           }
-      } else {
-        clearInterval(rememberInterval);
-      }
-    }, 1000);
+        } else {
+          clearInterval(rememberInterval);
+        }
+      }, 1000);
+    } else {
+      dispatch(recallTimeFinished(getState().currentGame));
+    }
   }
+}
+
+export function selectLevel(level) {
+  return {
+    payload: level,
+    type: 'SELECT_LEVEL'
+  };
 }
 
 export function rememberTimeTick() {
