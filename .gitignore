@@ -1,5 +1,6 @@
 node_modules/
-dist/
+build/production/
+build/dev/
 .DS_Store
 npm-debug.log
-config.json
+stats.json

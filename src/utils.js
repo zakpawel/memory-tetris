@@ -1,4 +1,12 @@
-import { isEqual } from 'lodash';
+function isEqual(sh1, sh2) {
+  if (sh1.length !== sh2.length) return false;
+  for (let i=0; i<sh1.length; i++) {
+    const [x1,y1] = sh1[i];
+    const [x2,y2] = sh2[i];
+    if (x1 !== x2 || y1 !== y2) return false;
+  }
+  return true;
+}
 
 export function checkShapes(shapes, correctShapes) {
   const wrongShapes = [];

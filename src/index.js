@@ -9,12 +9,14 @@ import thunkMiddleware from 'redux-thunk';
 import Root from './containers/Root';
 import { game } from './reducers/game';
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 const store = createStore(
   game,
-  IS_DEVELOPMENT ?
+  !IS_PRODUCTION && window.__REDUX_DEVTOOLS_EXTENSION__ ?
     compose(
       applyMiddleware(thunkMiddleware),
-      window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+      window.__REDUX_DEVTOOLS_EXTENSION__()
     ) :
     applyMiddleware(thunkMiddleware)
 );
@@ -28,7 +30,7 @@ render(
   document.getElementById("app")
 )
 
-if (IS_DEVELOPMENT && module.hot) {
+if (!IS_PRODUCTION && module.hot) {
   module.hot.accept('./containers/Root', () => {
     const Root = require('./containers/Root').default;
     render(
