@@ -24,9 +24,10 @@ export default ({ current, available, onSelect }) => {
         Level:
       </Info>
       <LevelsContainer>
-        { available.map((level) => {
+        { available.map((level, idx) => {
           return (
             <Level
+              key={idx}
               active={current === level}
               onClick={() => onSelect(level)}
             >

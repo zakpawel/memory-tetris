@@ -12,10 +12,18 @@ import shapePrototypes from '../shapes';
 import { selectLevel, nextGameAsync, shapeMove, shapeRotate } from '../actions/userActions';
 
 function mapStateToProps(state) {
+
+  const {
+    availableLevels,
+    level,
+    scale
+  } = state;
+
   return {
     ...state.games[state.currentGame],
-    level: state.level,
-    scale: state.scale
+    availableLevels,
+    level,
+    scale
   };
 }
 
@@ -104,7 +112,7 @@ class Root extends React.Component {
               </Button>
               <Levels
                 current={this.props.level}
-                available={[1,2,3,4]}
+                available={this.props.availableLevels}
                 onSelect={level => this.onSelectLevel(level)}
               />
             </NavBar>
