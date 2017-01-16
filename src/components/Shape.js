@@ -25,8 +25,8 @@ export default class Shape extends React.Component {
         }
         <path
           d={d}
-          stroke='red'
-          strokeWidth={this.props.wrong ? 0.05 : 0}
+          stroke={this.props.wrong && 'red' || this.props.correct && 'lightgreen'}
+          strokeWidth={this.props.wrong || this.props.correct ? 0.05 : 0}
           fill={this.props.color}
         />
         {

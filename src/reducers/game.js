@@ -6,7 +6,7 @@ import {
   randomGrid,
   emptyGrid,
   orderedGrid,
-  checkGrid,
+  checkShapes,
 } from '../utils';
 
 function shapePrototypes(level) {
@@ -113,26 +113,23 @@ export function game(state = initialState, action) {
     case 'RECALL_TIME_FINISHED': {
       const gameId = action.payload;
       const game = state.games[gameId];
-      const gameResult = isEqual(game.shapes, game.correctShapes);
-      const checkedShapes = [...game.correctShapes];
-      game.shapes.forEach((shape, idx) => {
-        if (!isEqual(shape, game.correctShapes[idx])) {
-          const invalidShape = {
-            ...shape,
-            wrong: true
-          };
-          checkedShapes.push(invalidShape);
-        }
-      });
+      const wrongShapes = checkShapes(game.shapes, game.correctShapes);
+
+      const displayedShapes = game.correctShapes
+        .map(shape =>({
+          ...shape,
+          correct: true
+        }))
+        .concat(wrongShapes.map(shape => ({ ...shape, wrong: true })))
+        .reverse();
       const stage = 'FINISHED';
-      // const stage = gameResult ? 'END_OK' : 'END_FAIL';
       return {
         ...state,
         games: {
           ...state.games,
           [gameId]: {
             ...game,
-            shapes: checkedShapes,
+            shapes: displayedShapes,
             stage
           }
         }

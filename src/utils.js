@@ -1,3 +1,21 @@
+import { isEqual } from 'lodash';
+
+export function checkShapes(shapes, correctShapes) {
+  const wrongShapes = [];
+  shapes.forEach((shape, idx) => {
+    const correctShape = correctShapes[idx];
+    const absPoints1 = absoluteShapePoints(shape.points, shape.location)
+      .sort(([x1,y1],[x2,y2]) => x1 === x2 ? y1 < y2 : x1 < x2);
+    const absPoints2 = absoluteShapePoints(correctShape.points, correctShape.location)
+      .sort(([x1,y1],[x2,y2]) => x1 === x2 ? y1 < y2 : x1 < x2);
+
+    if (!isEqual(absPoints1, absPoints2)) {
+      wrongShapes.push(shape);
+    }
+  });
+  return wrongShapes;
+}
+
 export function mod(n, m) {
   return ((n % m) + m) % m;
 }
