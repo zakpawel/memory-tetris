@@ -96,8 +96,8 @@ export function game(state = initialState, action) {
 
     case 'REMEMBER_TIME_FINISHED': {
       const gameId = action.payload;
-      const { scale, level } = state;
-      const shapes = orderedGrid(shapePrototypes(level), scale, scale);
+      const { scale } = state;
+      const shapes = orderedGrid(state.games[gameId].shapes, scale, scale);
       return {
         ...state,
         games: {
