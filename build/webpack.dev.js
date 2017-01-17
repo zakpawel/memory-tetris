@@ -1,6 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var autoprefixer = require('autoprefixer');
 
 var root = path.resolve(__dirname, '..');
 var src = path.resolve(root, 'src');
@@ -23,6 +24,15 @@ module.exports = {
       'process.env': {
         'NODE_ENV': JSON.stringify("production")
       }
+    }),
+    new webpack.LoaderOptionsPlugin({
+        options: {
+            postcss: [
+                autoprefixer({
+                    browsers: ['last 2 version']
+                })
+            ]
+        }
     })
   ],
   output: {
@@ -42,14 +52,20 @@ module.exports = {
     }
   },
   module: {
-    loaders: [{
-      test: /\.js$/,
-      loaders: ['react-hot-loader/webpack', 'babel-loader'],
-      include: [src]
-    }, {
-      test: /\.css$/,
-      loaders: ['style-loader', 'css-loader'],
-      include: [src]
-    }]
+    rules: [
+      {
+        test: /\.js$/,
+        use: ['react-hot-loader/webpack', 'babel-loader'],
+        include: [src]
+      },
+      {
+        test: /\.css$/,
+        include: [src],
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      }
+    ]
   }
 };

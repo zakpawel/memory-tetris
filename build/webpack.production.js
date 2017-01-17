@@ -1,6 +1,7 @@
 var path = require('path');
 var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var autoprefixer = require('autoprefixer');
 
 var root = path.resolve(__dirname, '..');
 var src = path.resolve(root, 'src');
@@ -31,6 +32,15 @@ module.exports = {
         screw_ie8: true,
         drop_console: true
       }
+    }),
+    new webpack.LoaderOptionsPlugin({
+        options: {
+            postcss: [
+                autoprefixer({
+                    browsers: ['last 2 version']
+                })
+            ]
+        }
     })
   ],
   output: {
@@ -39,14 +49,20 @@ module.exports = {
     filename: buildFilename
   },
   module: {
-    loaders: [{
-      test: /\.js$/,
-      loaders: ['babel-loader'],
-      include: [src]
-    }, {
-      test: /\.css$/,
-      loaders: ['style-loader', 'css-loader'],
-      include: [src]
-    }]
+    rules: [
+      {
+        test: /\.js$/,
+        use: ['babel-loader'],
+        include: [src]
+      },
+      {
+        test: /\.css$/,
+        include: [src],
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      }
+    ]
   }
 };

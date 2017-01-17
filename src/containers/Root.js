@@ -129,7 +129,6 @@ const Container = styled.div`
   }
   z-index: 1000;
   touch-action: none;
-  width: 100%;
 `;
 
 const SvgContainer = styled.div`
@@ -138,6 +137,11 @@ const SvgContainer = styled.div`
     max-height: 100vh;
     flex: 1 1 0;
   }
+  @media (orientation: portrait) {
+    width: calc(100vh - 9rem);
+    max-width: 100vw;
+  }
+
 `;
 
 const Svg = styled.svg`
@@ -145,12 +149,13 @@ const Svg = styled.svg`
 `;
 
 const ToolboxContainer = styled.div`
+  display: flex;
   background-color: #5fa0f3;
   @media (orientation: landscape) {
-    min-width: 4rem;
+    width: 9rem;
   }
   @media (orientation: portrait) {
-    min-height: 4rem;
+    height: 9rem;
   }
 `;
 

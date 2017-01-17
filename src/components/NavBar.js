@@ -49,9 +49,10 @@ const ChildContainer = styled.div`
 
 const Container = styled.div`
   display: flex;
+  height: 100%;
+  width: 100%;
   @media (orientation: landscape) {
     flex-direction: column;
-    height: 100%;
   }
   @media (orientation: portrait) {
     flex-direction: row;
