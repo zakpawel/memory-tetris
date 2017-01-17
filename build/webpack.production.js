@@ -7,7 +7,7 @@ var root = path.resolve(__dirname, '..');
 var src = path.resolve(root, 'src');
 var entry = path.resolve(root, 'src', 'index.js');
 var dist = path.resolve(root, 'build', 'production');
-var buildFilename = 'build.js';
+var buildFilename = 'build.[hash].js';
 
 module.exports = {
   entry: [
@@ -15,8 +15,7 @@ module.exports = {
   ],
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(src, 'index.production.html'),
-      hash: true
+      template: path.resolve(src, 'index.production.html')
     }),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.NoErrorsPlugin(),
@@ -45,7 +44,7 @@ module.exports = {
   ],
   output: {
     path: dist,
-    publicPath: '/',
+    publicPath: '',
     filename: buildFilename
   },
   module: {
