@@ -1,14 +1,18 @@
-
+import stageTypes from '../constants/gameStages';
+import types from '../constants/actionTypes';
 
 export function nextGameAsync() {
   return (dispatch, getState) => {
-    if (getState().games[getState().currentGame].stage === 'FINISHED'
-  || getState().games[getState().currentGame].stage === 'BEGIN') {
+    const state = getState();
+    const currentGame = state.games[state.currentGame];
+    const stage = currentGame.stage;
+
+    if (stage === stageTypes.FINISHED || stage === stageTypes.BEGIN) {
       dispatch(nextGame());
       const gameId = getState().currentGame;
       const rememberInterval = setInterval(() => {
         if (getState().currentGame === gameId &&
-        getState().games[gameId].stage === 'REMEMBER_TIME_LAPSE') {
+        getState().games[gameId].stage === stageTypes.REMEMBER_TIME_LAPSE) {
           if (getState().games[gameId].rememberTimeLeft > 1) {
             dispatch(rememberTimeTick());
           } else {
@@ -17,7 +21,7 @@ export function nextGameAsync() {
             dispatch(rememberTimeFinished(gameId));
             const recallInterval = setInterval(() => {
               if (getState().currentGame === gameId &&
-              getState().games[gameId].stage === 'RECALL_TIME_LAPSE') {
+              getState().games[gameId].stage === stageTypes.RECALL_TIME_LAPSE) {
                 if (getState().games[gameId].recallTimeLeft > 1) {
                   dispatch(recallTimeTick());
                 } else {
@@ -43,39 +47,39 @@ export function nextGameAsync() {
 export function selectLevel(level) {
   return {
     payload: level,
-    type: 'SELECT_LEVEL'
+    type: types.SELECT_LEVEL
   };
 }
 
 export function rememberTimeTick() {
   return {
-    type: 'REMEMBER_TIME_TICK'
+    type: types.REMEMBER_TIME_TICK
   };
 }
 
 export function recallTimeTick() {
   return {
-    type: 'RECALL_TIME_TICK'
+    type: types.RECALL_TIME_TICK
   };
 }
 
 export function nextGame() {
   return {
-    type: 'NEXT_GAME'
+    type: types.NEXT_GAME
   };
 }
 
 export function rememberTimeFinished(gameId) {
   return {
     payload: gameId,
-    type: 'REMEMBER_TIME_FINISHED'
+    type: types.REMEMBER_TIME_FINISHED
   };
 }
 
 export function recallTimeFinished(gameId) {
   return {
     payload: gameId,
-    type: 'RECALL_TIME_FINISHED'
+    type: types.RECALL_TIME_FINISHED
   };
 }
 export function shapeMove(point, index) {
@@ -84,7 +88,7 @@ export function shapeMove(point, index) {
       point,
       index
     },
-    type: 'SHAPE_MOVE'
+    type: types.SHAPE_MOVE
   };
 }
 
@@ -94,6 +98,6 @@ export function shapeRotate(angle, index) {
       angle,
       index
     },
-    type: 'SHAPE_ROTATE'
+    type: types.SHAPE_ROTATE
   };
 }

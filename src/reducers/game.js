@@ -1,3 +1,5 @@
+import stageTypes from '../constants/gameStages';
+import types from '../constants/actionTypes';
 import shapes from '../shapes';
 import {
   rotateShape,
@@ -30,20 +32,20 @@ const initialState = {
       shapes: initialShapes,
       rememberTimeLeft: rememberTime,
       recallTimeLeft: recallTime,
-      stage: 'BEGIN'
+      stage: stageTypes.BEGIN
     }
   }
 };
 
 export function game(state = initialState, action) {
   switch (action.type) {
-    case 'SELECT_LEVEL': {
+    case types.SELECT_LEVEL: {
       return {
         ...state,
         level: action.payload
       };
     }
-    case 'REMEMBER_TIME_TICK': {
+    case types.REMEMBER_TIME_TICK: {
       let timeLeft = state.games[state.currentGame].rememberTimeLeft - 1;
       timeLeft = timeLeft < 0 ? 0 : timeLeft;
       return {
@@ -58,7 +60,7 @@ export function game(state = initialState, action) {
       }
     }
 
-    case 'RECALL_TIME_TICK': {
+    case types.RECALL_TIME_TICK: {
       let timeLeft = state.games[state.currentGame].recallTimeLeft - 1;
       timeLeft = timeLeft < 0 ? 0 : timeLeft;
       return {
@@ -73,7 +75,7 @@ export function game(state = initialState, action) {
       }
     }
 
-    case 'NEXT_GAME': {
+    case types.NEXT_GAME: {
       const { scale, currentGame, level } = state;
       const shapes = randomGrid(shapePrototypes(level), scale, scale);
       const nextGame = currentGame + 1;
@@ -88,13 +90,13 @@ export function game(state = initialState, action) {
             recallTimeLeft: recallTime,
             correctShapes: shapes,
             shapes,
-            stage: 'REMEMBER_TIME_LAPSE'
+            stage: stageTypes.REMEMBER_TIME_LAPSE
           }
         }
       };
     }
 
-    case 'REMEMBER_TIME_FINISHED': {
+    case types.REMEMBER_TIME_FINISHED: {
       const gameId = action.payload;
       const { scale } = state;
       const shapes = orderedGrid(state.games[gameId].shapes, scale, scale);
@@ -105,13 +107,13 @@ export function game(state = initialState, action) {
           [gameId]: {
             ...state.games[gameId],
             shapes,
-            stage: 'RECALL_TIME_LAPSE'
+            stage: stageTypes.RECALL_TIME_LAPSE
           }
         }
       };
     }
 
-    case 'RECALL_TIME_FINISHED': {
+    case types.RECALL_TIME_FINISHED: {
       const gameId = action.payload;
       const game = state.games[gameId];
       const wrongShapes = checkShapes(game.shapes, game.correctShapes);
@@ -123,7 +125,7 @@ export function game(state = initialState, action) {
         }))
         .concat(wrongShapes.map(shape => ({ ...shape, wrong: true })))
         .reverse();
-      const stage = 'FINISHED';
+      const stage = stageTypes.FINISHED;
       return {
         ...state,
         games: {
@@ -137,7 +139,7 @@ export function game(state = initialState, action) {
       };
     }
 
-    case 'SHAPE_MOVE': {
+    case types.SHAPE_MOVE: {
       const { point, index } = action.payload;
       return {
         ...state,
@@ -157,7 +159,7 @@ export function game(state = initialState, action) {
       };
     }
 
-    case 'SHAPE_ROTATE': {
+    case types.SHAPE_ROTATE: {
       const { angle, index } = action.payload;
       return {
         ...state,
