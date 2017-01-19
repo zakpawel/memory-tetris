@@ -22,5 +22,17 @@ export default [
     color: '#7FC31C',
     center: [1,1],
     angle: 0,
+  },
+  { location: [7,7],
+    points: [[0,0], [0,1], [0,2], [1,2]],
+    color: 'blue',
+    center: [1,1],
+    angle: 0,
+  },
+  { location: [7,7],
+    points: [[0,0], [0,1], [0,2], [1,2]],
+    color: 'red',
+    center: [1,1],
+    angle: 0,
   }
 ];

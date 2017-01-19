@@ -1,3 +1,37 @@
+export function debounce(fn, timeout = 500) {
+  let ready = true;
+  let lastArgs = null;
+  let timer = null;
+
+  function call() {
+    fn.apply(fn, lastArgs);
+    lastArgs = null;
+    ready = false;
+    timer = startTimer();
+  }
+
+  function f() {
+    lastArgs = arguments;
+    if (ready) {
+      call();
+    } else {
+      timer = startTimer();
+    }
+  }
+  function startTimer() {
+    let t = setTimeout(() => {
+      if (t === timer) {
+        ready = true;
+        if (lastArgs !== null) {
+          call();
+        }
+      }
+    }, timeout);
+    return t;
+  }
+  return f;
+}
+
 function mean(values) {
   if (!values.length) throw new Error('Cannot compute mean on empty array');
 

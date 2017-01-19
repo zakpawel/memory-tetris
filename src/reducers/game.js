@@ -18,7 +18,7 @@ const rememberTime = 2;
 const recallTime = 20;
 const gridSize = 8;
 const entryLevel = 1;
-const availableLevels = [1,2,3,4];
+const availableLevels = [1,2,3,4,5,6];
 const initialShapes = shapePrototypes(entryLevel);
 
 const initialState = {

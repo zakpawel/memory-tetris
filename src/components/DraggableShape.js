@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import interact from 'interactjs';
 import ReactDOM from 'react-dom';
 import Shape from '../components/Shape';
+import { debounce } from '../utils';
 
 import {
   transformToPx,
@@ -43,19 +44,22 @@ export default class DraggableShape extends React.Component {
     this.node.setAttribute('transform', transform(x, y, cx, cy, a));
   }
 
-  componentWillUnmout() {
-    // XXX: some clean-up?
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
-  componentDidMount() {
+  init() {
     this.node = ReactDOM.findDOMNode(this);
     this.svg = this.node.ownerSVGElement;
     const [snapx,snapy] = transformToPx(1,1,this.svg);
     this.updateStateFromProps();
-
+    if (this.interactable) {
+      this.interactable.unset();
+      this.interactable = null;
+    }
     this.interactable =
       interact
-        .pointerMoveTolerance(4)(ReactDOM.findDOMNode(this.node))
+        .pointerMoveTolerance(8)(this.node)
         .preventDefault('always')
         .draggable({
       	   snap: {
@@ -75,11 +79,14 @@ export default class DraggableShape extends React.Component {
           onend: this.onDragEnd.bind(this)
         })
         .on('tap', this.onTap.bind(this));
-
   }
 
-  resizeHandler(event) {
-    this.setSnapGrid();
+  componentDidMount() {
+    this.resizeHandler = debounce(e => {
+      this.init();
+    });
+    window.addEventListener('resize', this.resizeHandler);
+    this.init();
   }
 
   setSnapGrid() {
