@@ -1,3 +1,29 @@
+function mean(values) {
+  if (!values.length) throw new Error('Cannot compute mean on empty array');
+
+  const sum = values.reduce((b,a) => b+a);
+  return sum / values.length;
+}
+
+function variance(values) {
+  const m = mean(values);
+  return mean(values.map(x => (x-m)*(x-m)));
+}
+
+function stdDeviation(values) {
+  return Math.sqrt(variance(values));
+}
+
+function stdDeviation2d(points) {
+  const [xs,ys] = points.reduce(([xs,ys],[ax,ay]) => {
+    xs.push(ax);
+    ys.push(ay);
+    return [xs,ys];
+  }, [[],[]]);
+
+  return [stdDeviation(xs),stdDeviation(ys)];
+}
+
 function isEqual(sh1, sh2) {
   if (sh1.length !== sh2.length) return false;
   for (let i=0; i<sh1.length; i++) {
@@ -98,6 +124,56 @@ export function randomShape(shape, grid) {
   return randomShape;
 }
 
+export function shapesStdDeviation(shapes) {
+  const allPoints = shapes.reduce(
+    (allPoints,shape) =>
+      allPoints
+        .concat(absoluteShapePoints(shape.points, shape.location)), []);
+  const stdDev = stdDeviation2d(allPoints);
+  return stdDev;
+}
+
+export function normalizeRanks(shapesStdDev) {
+  const rankedShapes = shapesStdDev.map(([shape,[stdx,stdy]]) => [shape,stdx*stdy]);
+  const maxRank = rankedShapes.reduce((b,[shape,rank]) => Math.max(b,rank), -Infinity);
+  return rankedShapes.map(([shape, rank]) => {
+    let x = rank / maxRank;
+    x = (1-x);
+    x = Math.pow(x,12);
+    return [shape,x];
+  });
+}
+
+export function randomShapeByRank(rankedShapes) {
+  const rankSum = rankedShapes.reduce((b,[shape, rank]) => b+rank, 0);
+  const randSum = random(0, rankSum);
+
+  let currentSum = 0;
+  for (let i=0; i<rankedShapes.length; i++) {
+    const [shape,rank] = rankedShapes[i];
+    currentSum += rank;
+    if (currentSum > randSum) {
+      return shape;
+    }
+  }
+  return rankedShapes[random(0, rankedShapes.length)][0];
+}
+
+export function randomClusteredShape(shape, grid, existingShapes) {
+  if (!existingShapes.length) {
+    const firstShape = randomShape(shape, grid);
+    return firstShape;
+  } else {
+    const validPossibleShapes = possibleShapes(shape, grid);
+    const rankedShapes = validPossibleShapes.map(nextShape => {
+      const nextShapes = [...existingShapes, nextShape];
+      const stdDev = shapesStdDeviation(nextShapes);
+      return [nextShape,stdDev];
+    });
+    return randomShapeByRank(normalizeRanks(rankedShapes));
+  }
+}
+
 export function emptyGrid(n,m) {
   const grid = [];
   for (let i=0; i<n; i++) {
@@ -112,20 +188,20 @@ export function emptyGrid(n,m) {
 
 export function makeGrid(shapes, n, m, chooseShape) {
   const grid = emptyGrid(n,m);
-  const newShapes = [];
+  const nextShapes = [];
   shapes.forEach(shape => {
-    const newShape = chooseShape(shape, grid);
-    const { location: [lx,ly] } = newShape;
-    newShape.points.forEach(([x,y]) => {
+    const nextShape = chooseShape(shape, grid, nextShapes);
+    const { location: [lx,ly] } = nextShape;
+    nextShape.points.forEach(([x,y]) => {
       grid[y+ly][x+lx] = 1;
     });
-    newShapes.push(newShape);
+    nextShapes.push(nextShape);
   });
-  return newShapes;
+  return nextShapes;
 }
 
 export function randomGrid(shapes, n, m) {
-  return makeGrid(shapes, n, m, randomShape);
+  return makeGrid(shapes, n, m, randomClusteredShape);
 }
 
 export function orderedGrid(shapes, n, m) {
