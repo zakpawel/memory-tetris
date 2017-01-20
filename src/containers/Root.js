@@ -8,8 +8,8 @@ import Levels from '../components/Levels';
 import Counter from '../components/Counter';
 import Button from '../components/Button';
 import { rotateShape, randomShape, randomGrid } from '../utils';
-import shapePrototypes from '../shapes';
 import { selectLevel, nextGameAsync, shapeMove, shapeRotate } from '../actions/userActions';
+import colors from '../style/colorPalette';
 
 function mapStateToProps(state) {
 
@@ -150,7 +150,7 @@ const Svg = styled.svg`
 
 const ToolboxContainer = styled.div`
   display: flex;
-  background-color: #5fa0f3;
+  background-color: ${colors.blueSky};
   @media (orientation: landscape) {
     width: 9rem;
   }

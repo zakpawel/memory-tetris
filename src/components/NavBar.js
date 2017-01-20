@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import DraggableShape from '../components/DraggableShape';
 import { rotateShape, randomShape, randomGrid } from '../utils';
-import shapePrototypes from '../shapes';
 
 export default class NavBar extends React.Component {
 
@@ -35,7 +34,7 @@ const ChildContainer = styled.div`
   flex: 1 1 auto;
   font-size: 2rem;
   text-shadow: 0px 0px 4px black;
-  font-family: arial black;
+  font-family: sans-serif;
   color: white;
 
   @media (orientation: landscape) {

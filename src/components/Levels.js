@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Info from '../components/Info';
+import colors from '../style/colorPalette';
 
 const LevelsContainer = styled.div`
   display: flex;
@@ -43,5 +44,5 @@ export default ({ current, available, onSelect }) => {
 const Level = styled.div`
   flex: 1 1 50%;
   text-align: center;
-  background-color: ${props => props.active ? 'gold': 'transparent'};
+  background-color: ${props => props.active ? colors.yellow : 'transparent'};
 `;

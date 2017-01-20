@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { transform } from '../utils';
+import colors from '../style/colorPalette';
 
 export default class Shape extends React.Component {
   render() {
@@ -19,13 +20,14 @@ export default class Shape extends React.Component {
               cx={cx}
               cy={cy}
               r={3}
-              fill="rgba(91, 171, 216, 0.2)"
+              fill={colors.blueSky}
+              fillOpacity={0.2}
             />
           : null
         }
         <path
           d={d}
-          stroke={this.props.wrong && 'red' || this.props.correct && 'lightgreen'}
+          stroke={this.props.wrong && colors.softRed || this.props.correct && colors.softGreen}
           strokeWidth={this.props.wrong || this.props.correct ? 0.05 : 0}
           fill={this.props.color}
         />
@@ -45,13 +47,13 @@ const Knob = (({ cx,cy }) =>
       cx={cx}
       cy={cy}
       r={0.12}
-      fill="white"
+      fill={colors.white}
     />
     <circle
       cx={cx}
       cy={cy}
       r={0.1}
-      fill="#2196F3"
+      fill={colors.blue}
     />
   </KnobScaled>
 )

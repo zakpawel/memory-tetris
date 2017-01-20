@@ -1,6 +1,6 @@
 import stageTypes from '../constants/gameStages';
 import types from '../constants/actionTypes';
-import shapes from '../shapes';
+import shapes from '../constants/shapes';
 import {
   rotateShape,
   randomShape,
